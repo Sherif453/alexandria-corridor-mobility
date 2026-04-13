@@ -1,0 +1,17 @@
+node_modules/
+.next/
+.env
+.env.local
+dist/
+build/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Prisma
+prisma/dev.db
+
+# Logs
+*.log
