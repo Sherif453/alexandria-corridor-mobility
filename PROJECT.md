@@ -501,9 +501,9 @@ preparation, and release freeze.
 
 - [x] Read PDF roadmap and extract implementation contract
 - [x] Create and populate `PROJECT.md`
-- [ ] Align repo skeleton
-- [ ] Initialize Next.js App Router + TypeScript + Tailwind app
-- [ ] Add Prisma schema and SQLite configuration
+- [x] Align repo skeleton
+- [x] Initialize Next.js App Router + TypeScript + Tailwind app
+- [x] Add Prisma schema and SQLite configuration
 - [ ] Define corridor segments and sample point plan
 - [ ] Implement ingestion pipeline with quota protection
 - [ ] Persist raw observations
@@ -565,6 +565,9 @@ The following items remain open:
 - Time-based evaluation is mandatory.
 - Leaflet is the selected mapping library.
 - TomTom is the external traffic source.
+- Prisma is pinned to `6.19.3` for the current implementation baseline because
+  it keeps the standard SQLite + `.env` + `schema.prisma` workflow stable and
+  avoids Prisma 7 config changes that do not add product value for this MVP.
 - The congestion class thresholds are based on speed ratio to free-flow speed:
   High below 0.4, Medium from 0.4 to 0.7, and Low above 0.7. First working
   thresholds and revisit only if the data suggests better cutoffs.
@@ -605,9 +608,22 @@ emphasizes predictions, trends, confidence, freshness, and scenario deltas.
 
 ## Run instructions
 
-Planned local workflows after implementation include the web app startup, Prisma
-migration and client generation, scheduled ingestion, feature generation, model
-training, inference, and scenario generation jobs.
+Current working setup commands:
+
+- Install dependencies: `npm install`
+- Start the app locally: `npm run dev`
+- Lint the repository: `npm run lint`
+- Generate Prisma client: `npm run prisma:generate`
+- Run Prisma migrations locally: `npm run prisma:migrate`
+- Open Prisma Studio: `npx prisma studio`
+
+Still pending:
+
+- Scheduled ingestion workflow
+- Feature generation workflow
+- Model training workflow
+- Inference workflow
+- Scenario generation workflow
 
 ## Future notes
 

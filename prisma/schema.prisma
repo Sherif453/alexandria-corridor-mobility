@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Segment {
+  id            String   @id @default(cuid())
+  segmentId     String   @unique
+  roadName      String
+  geometryRef   String?
+  roadType      String?
+  latitude      Float?
+  longitude     Float?
+  sortOrder     Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  observations  TrafficObservation[]
+  features      FeatureSnapshot[]
+  predictions   Prediction[]
+}
+
+model TrafficObservation {
+  id               String   @id @default(cuid())
+  segmentId        String
+  timestampUtc     DateTime
+  speed            Float?
+  freeFlowSpeed    Float?
+  congestionLabel  String?
+  source           String
+  qualityStatus    String?
+  ingestionRunId   String?
+  createdAt        DateTime @default(now())
+
+  segment          Segment  @relation(fields: [segmentId], references: [segmentId])
+
+  @@index([segmentId, timestampUtc])
+}
+
+model FeatureSnapshot {
+  id                    String   @id @default(cuid())
+  segmentId             String
+  timestampUtc          DateTime
+  hourOfDay             Int?
+  dayOfWeek             Int?
+  weekendFlag           Boolean?
+  holidayFlag           Boolean?
+  recentObservedSpeed   Float?
+  rollingMeanSpeed      Float?
+  rollingStdSpeed       Float?
+  relativeToFreeFlow    Float?
+  speedChangeRate       Float?
+  incidentFlag          Boolean?
+  roadCategory          String?
+  target                String?
+  featureVersion        String
+  createdAt             DateTime @default(now())
+
+  segment               Segment  @relation(fields: [segmentId], references: [segmentId])
+
+  @@index([segmentId, timestampUtc])
+}
+
+model Prediction {
+  id               String   @id @default(cuid())
+  segmentId        String
+  timestampUtc     DateTime
+  predictedLabel   String
+  confidence       Float?
+  modelVersion     String
+  createdAt        DateTime @default(now())
+
+  segment          Segment  @relation(fields: [segmentId], references: [segmentId])
+
+  @@index([segmentId, timestampUtc])
+}
+
+model ScenarioResult {
+  id               String   @id @default(cuid())
+  scenarioId       String
+  metricName       String
+  metricValue      Float
+  notes            String?
+  scenarioVersion  String
+  createdAt        DateTime @default(now())
+
+  @@index([scenarioId])
+}
+
+model IngestionRun {
+  id            String   @id @default(cuid())
+  runId         String   @unique
+  startedAt     DateTime
+  endedAt       DateTime?
+  status        String
+  quotaUsage    Int      @default(0)
+  errorMessage  String?
+  createdAt     DateTime @default(now())
+}
+
+model ModelRun {
+  id            String   @id @default(cuid())
+  runId         String   @unique
+  modelName     String
+  version       String
+  datasetRange  String
+  metricsJson   String?
+  artifactPath  String?
+  createdAt     DateTime @default(now())
+}
