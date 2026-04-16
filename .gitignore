@@ -4,6 +4,8 @@ node_modules/
 .env.local
 dist/
 build/
+.tmp/
+tsconfig.tsbuildinfo
 
 # Python
 __pycache__/

@@ -395,15 +395,15 @@ TomTom quota control is part of the core design.
 
 ### Recommended safe configuration
 
-- Sample points: 36
+- Sample points: 35
 - Poll frequency: every 15 minutes, or 4 times per hour
-- Active hours per day: 16
-- Total requests per day: 2,304
-- Safety buffer: approximately 196 requests
+- Active hours per day: 17
+- Total requests per day: 2,380
+- Safety buffer: approximately 70 requests below the 2,450 stop-before-cap
 
 ### Hard quota protection
 
-The design includes a fixed active window, a stop point around 2,250 requests
+The design includes a fixed active window, a stop point around 2,450 requests
 per day, SQLite-based request tracking, reset logic at the daily boundary, and
 clean stop behavior when the limit is reached.
 
@@ -504,11 +504,11 @@ preparation, and release freeze.
 - [x] Align repo skeleton
 - [x] Initialize Next.js App Router + TypeScript + Tailwind app
 - [x] Add Prisma schema and SQLite configuration
-- [ ] Define corridor segments and sample point plan
+- [x] Define corridor segments and sample point plan
 - [ ] Implement ingestion pipeline with quota protection
 - [ ] Persist raw observations
-- [ ] Implement `/api/health`
-- [ ] Implement `/api/segments`
+- [x] Implement `/api/health`
+- [x] Implement `/api/segments`
 - [ ] Implement `/api/traffic/latest`
 - [ ] Implement `/api/traffic/history`
 - [ ] Build home / overview page
@@ -536,9 +536,14 @@ preparation, and release freeze.
 The following items remain open:
 
 - Exact monitored sample point coordinates
-  - The sampling strategy is fixed, but the exact coordinates will be derived
-    from the finalized corridor geometry and aligned to key intersections and
-    segment midpoints.
+  - A fixed set of 35 monitored points is now defined in
+    `lib/corridor/definition.ts`.
+  - The current v2 coordinates follow a documented corridor polyline through
+    Victoria, Bakos, Saba Pasha, Sidi Gaber, Sporting, Camp Caesar, Shatby, and
+    El Raml.
+  - The remaining open part is whether they should later be refined to exact
+    road-centerline monitoring coordinates after live ingestion is running
+    reliably.
 
 - SUMO network import workflow and preprocessing path
   - Use OSM corridor extraction → network cleaning → SUMO export/import →
@@ -568,6 +573,20 @@ The following items remain open:
 - Prisma is pinned to `6.19.3` for the current implementation baseline because
   it keeps the standard SQLite + `.env` + `schema.prisma` workflow stable and
   avoids Prisma 7 config changes that do not add product value for this MVP.
+- The corridor source of truth now lives in `lib/corridor/definition.ts` and is
+  seeded into SQLite through `prisma/seed.ts`.
+- The current corridor monitoring plan uses 35 fixed points in a strict ordered
+  chain across Victoria -> Sidi Gaber -> Raml.
+- The current corridor geometry no longer uses a straight anchor interpolation.
+  It now samples a route polyline built from map-evidenced localities along the
+  Alexandria east-west urban axis.
+- The ingestion foundation uses TomTom Flow Segment Data v4, a stop-before-cap
+  daily quota guard, a rolling 24-hour quota usage check, and a local active
+  window of 07:00-24:00 in `Africa/Cairo`.
+- The scheduler no longer forces an extra startup ingestion run, and it skips
+  new cron ticks if the previous run is still active.
+- Raw ingestion payloads are written to `data/raw/tomtom/<YYYY-MM-DD>/` and
+  normalized observations are written to SQLite when the TomTom key is present.
 - The congestion class thresholds are based on speed ratio to free-flow speed:
   High below 0.4, Medium from 0.4 to 0.7, and Low above 0.7. First working
   thresholds and revisit only if the data suggests better cutoffs.
@@ -613,13 +632,17 @@ Current working setup commands:
 - Install dependencies: `npm install`
 - Start the app locally: `npm run dev`
 - Lint the repository: `npm run lint`
+- Run type checks: `npm run typecheck`
 - Generate Prisma client: `npm run prisma:generate`
 - Run Prisma migrations locally: `npm run prisma:migrate`
+- Seed the corridor segments into SQLite: `npm run db:seed`
+- Run one ingestion cycle: `npm run ingest:once`
+- Start the ingestion scheduler: `npm run ingest:scheduler`
 - Open Prisma Studio: `npx prisma studio`
 
 Still pending:
 
-- Scheduled ingestion workflow
+- Live ingestion with a configured `TOMTOM_API_KEY`
 - Feature generation workflow
 - Model training workflow
 - Inference workflow

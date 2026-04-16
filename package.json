@@ -8,8 +8,12 @@
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "typecheck": "tsc -p tsconfig.json --noEmit --pretty false",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "db:seed": "TMPDIR=.tmp tsx prisma/seed.ts",
+    "ingest:once": "TMPDIR=.tmp tsx scripts/ingest/run.ts",
+    "ingest:scheduler": "TMPDIR=.tmp tsx scripts/ingest/scheduler.ts"
   },
   "keywords": [],
   "author": "",
@@ -17,9 +21,12 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "6.19.3",
+    "dotenv": "^17.4.2",
     "next": "^16.2.3",
+    "node-cron": "^4.2.1",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.2",
@@ -31,6 +38,7 @@
     "postcss": "^8.5.9",
     "prisma": "6.19.3",
     "tailwindcss": "^4.2.2",
+    "tsx": "^4.21.0",
     "typescript": "^6.0.2"
   }
 }
