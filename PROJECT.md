@@ -515,7 +515,7 @@ preparation, and release freeze.
 - [x] Build live corridor map page
 - [x] Build historical analytics page
 - [x] Implement feature engineering pipeline
-- [ ] Train baseline models and save metrics/artifacts
+- [x] Train baseline models and save metrics/artifacts
 - [ ] Implement prediction persistence
 - [ ] Implement `/api/predictions/latest`
 - [ ] Implement `/api/predictions/trend`
@@ -608,6 +608,11 @@ The following items remain open:
   runnable through `npm run features:build`. It reads SQLite observations,
   writes `FeatureSnapshot` rows, uses only current/past observations for feature
   values, and stores the next valid observed congestion class as the target.
+- Baseline model training is implemented in Python under `python/models` and is
+  runnable through `npm run models:train` after `npm run python:setup`. It uses
+  time-ordered train/validation/test splits, logistic regression as the baseline
+  model, random forest as the main practical model, class-balanced training, and
+  a naive last-class comparison.
 
 ## Risks and mitigations
 
@@ -654,12 +659,13 @@ Current working setup commands:
 - Seed the corridor segments into SQLite: `npm run db:seed`
 - Run one ingestion cycle: `npm run ingest:once`
 - Start the ingestion scheduler: `npm run ingest:scheduler`
+- Install Python ML dependencies: `npm run python:setup`
+- Build ML features from SQLite observations: `npm run features:build`
+- Train baseline congestion models: `npm run models:train`
 - Open Prisma Studio: `npx prisma studio`
 
 Still pending:
 
-- Feature generation workflow
-- Model training workflow
 - Inference workflow
 - Scenario generation workflow
 
