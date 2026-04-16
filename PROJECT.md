@@ -575,10 +575,15 @@ The following items remain open:
   avoids Prisma 7 config changes that do not add product value for this MVP.
 - The corridor source of truth now lives in `lib/corridor/definition.ts` and is
   seeded into SQLite through `prisma/seed.ts`.
+- Corridor seeding prunes stale empty segment rows that are no longer in the
+  current fixed sample chain while preserving any segment row that already has
+  observations, features, or predictions.
 - The current corridor monitoring plan uses 35 fixed points in a strict ordered
   chain across Victoria -> Sidi Gaber -> Raml.
-- Each monitored point now has a user-facing locality label instead of the
-  generic corridor road name.
+- Each monitored point now has a route-aligned user-facing locality or landmark
+  label instead of the generic corridor road name. The current label set uses
+  real neighborhoods, tram/rail stops, squares, hospitals, schools, and other
+  named landmarks along the fixed Victoria -> Sidi Gaber -> Raml sample chain.
 - The current corridor geometry no longer uses a straight anchor interpolation.
   It now samples a route polyline built from map-evidenced localities along the
   Alexandria east-west urban axis.

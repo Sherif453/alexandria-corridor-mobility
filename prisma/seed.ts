@@ -7,9 +7,11 @@ import { CORRIDOR_SEGMENTS } from "../lib/corridor/definition";
 const prisma = new PrismaClient();
 
 async function main() {
-  await prisma.$transaction(
-    CORRIDOR_SEGMENTS.map((segment) =>
-      prisma.segment.upsert({
+  const activeSegmentIds = CORRIDOR_SEGMENTS.map((segment) => segment.segmentId);
+
+  const deletedStaleSegments = await prisma.$transaction(async (tx) => {
+    for (const segment of CORRIDOR_SEGMENTS) {
+      await tx.segment.upsert({
         where: { segmentId: segment.segmentId },
         update: {
           roadName: segment.roadName,
@@ -28,11 +30,32 @@ async function main() {
           longitude: segment.longitude,
           sortOrder: segment.sortOrder,
         },
-      }),
-    ),
-  );
+      });
+    }
 
-  console.log(`Seeded ${CORRIDOR_SEGMENTS.length} corridor segments.`);
+    const deleteResult = await tx.segment.deleteMany({
+      where: {
+        segmentId: {
+          notIn: activeSegmentIds,
+        },
+        observations: {
+          none: {},
+        },
+        features: {
+          none: {},
+        },
+        predictions: {
+          none: {},
+        },
+      },
+    });
+
+    return deleteResult.count;
+  });
+
+  console.log(
+    `Seeded ${CORRIDOR_SEGMENTS.length} corridor segments. Removed ${deletedStaleSegments} stale empty segments.`,
+  );
 }
 
 main()

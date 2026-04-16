@@ -25,7 +25,7 @@ export const CORRIDOR_NAME =
   "Alexandria Corridor Mobility Intelligence Corridor";
 export const CORRIDOR_SCOPE = "Victoria -> Sidi Gaber -> Raml (Mahattet El Raml)";
 export const CORRIDOR_SAMPLE_POINT_COUNT = 35;
-export const CORRIDOR_DEFINITION_VERSION = "2026-04-16.v4";
+export const CORRIDOR_DEFINITION_VERSION = "2026-04-16.v6";
 
 // Fixed points follow a documented corridor polyline across named localities on
 // the Abu Qir / Al-Horreya axis, rather than a direct interpolation between
@@ -99,40 +99,40 @@ export const CORRIDOR_ROUTE_WAYPOINTS: readonly CorridorAnchor[] = [
 
 const CORRIDOR_SEGMENT_LOCALITIES = [
   "Victoria Station",
-  "Victoria",
-  "Victoria - Bakos approach",
-  "Bakos east",
+  "Luran Station",
+  "Gnaklis Station",
+  "Shots Station",
+  "Safer Station",
   "Bakos",
-  "Bakos west",
-  "Bakos - Saba Pasha",
-  "Saba Pasha east",
+  "Bakus Tram Stop",
+  "Bakus",
+  "Petroleum Hospital",
+  "Fleming Station",
+  "Gleem",
   "Saba Pasha",
-  "Saba Pasha west",
-  "Saba Pasha - Sidi Gaber",
-  "Sidi Gaber east approach",
+  "Stanley",
+  "Rushdi",
+  "Mostafa Kamel Tombs",
+  "Mostafa Kamel Hospital",
   "Sidi Gaber Station",
   "Sidi Gaber",
-  "Sidi Gaber west",
-  "Sidi Gaber - Sporting",
-  "Sporting east",
+  "Cleopatra Station",
+  "Cleopatra",
+  "Sporting El-Kobra Station",
   "Sporting",
-  "Sporting west",
-  "Sporting - Camp Caesar",
-  "Camp Caesar east",
+  "Al-Ibrahimia",
+  "Ibrahimia",
   "Camp Caesar",
-  "Camp Caesar west",
-  "Camp Caesar - Shatby",
-  "Shatby east",
+  "Camp Caesar District",
+  "El Shatby Station",
+  "College Saint-Marc",
   "Shatby",
-  "Shatby west",
-  "Shatby - El Raml",
-  "El Raml east approach",
-  "El Raml commercial area",
-  "El Raml Station approach",
-  "El Raml Station",
-  "Mahattet El Raml east",
-  "Mahattet El Raml",
-  "Raml Station terminus",
+  "Shatby",
+  "Azarita Cemetery",
+  "Al Khartoum Square",
+  "Azarita District",
+  "Raml Station Area",
+  "Raml Station",
 ] as const;
 
 if (CORRIDOR_SEGMENT_LOCALITIES.length !== CORRIDOR_SAMPLE_POINT_COUNT) {
