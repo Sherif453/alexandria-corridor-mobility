@@ -505,12 +505,12 @@ preparation, and release freeze.
 - [x] Initialize Next.js App Router + TypeScript + Tailwind app
 - [x] Add Prisma schema and SQLite configuration
 - [x] Define corridor segments and sample point plan
-- [ ] Implement ingestion pipeline with quota protection
-- [ ] Persist raw observations
+- [x] Implement ingestion pipeline with quota protection
+- [x] Persist raw observations
 - [x] Implement `/api/health`
 - [x] Implement `/api/segments`
-- [ ] Implement `/api/traffic/latest`
-- [ ] Implement `/api/traffic/history`
+- [x] Implement `/api/traffic/latest`
+- [x] Implement `/api/traffic/history`
 - [ ] Build home / overview page
 - [ ] Build live corridor map page
 - [ ] Build historical analytics page
@@ -592,6 +592,8 @@ The following items remain open:
   thresholds and revisit only if the data suggests better cutoffs.
 - Historical analytics uses 15-minute raw windows, hourly aggregation, and daily
   aggregation.
+- Traffic read APIs now expose the latest per-segment corridor state plus
+  bounded historical raw, hourly, and daily views from SQLite.
 
 ## Risks and mitigations
 
@@ -642,7 +644,6 @@ Current working setup commands:
 
 Still pending:
 
-- Live ingestion with a configured `TOMTOM_API_KEY`
 - Feature generation workflow
 - Model training workflow
 - Inference workflow
