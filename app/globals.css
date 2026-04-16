@@ -2,6 +2,14 @@
 
 :root {
   color-scheme: light;
+  --paper: #f6f1e8;
+  --ink: #16201d;
+  --muted: #64706c;
+  --harbor: #0e4f4b;
+  --harbor-soft: #d9ebe4;
+  --signal: #e3a72f;
+  --danger: #b94a3a;
+  --line: rgba(22, 32, 29, 0.12);
 }
 
 html,
@@ -12,7 +20,56 @@ body {
 }
 
 body {
-  background: #f8fafc;
-  color: #0f172a;
-  font-family: Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(227, 167, 47, 0.22), transparent 32rem),
+    radial-gradient(circle at 80% 12%, rgba(14, 79, 75, 0.16), transparent 34rem),
+    linear-gradient(135deg, rgba(22, 32, 29, 0.05) 25%, transparent 25%) 0 0 / 24px 24px,
+    var(--paper);
+  color: var(--ink);
+  font-family: "Trebuchet MS", "Aptos", sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+::selection {
+  background: rgba(227, 167, 47, 0.45);
+}
+
+.leaflet-container {
+  font-family: "Trebuchet MS", "Aptos", sans-serif;
+}
+
+.corridor-marker {
+  align-items: center;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 10px 24px rgba(22, 32, 29, 0.28);
+  color: #ffffff;
+  display: flex;
+  font-size: 11px;
+  font-weight: 800;
+  height: 28px;
+  justify-content: center;
+  letter-spacing: -0.02em;
+  width: 28px;
+}
+
+.corridor-marker--low {
+  background: #0e7a5f;
+}
+
+.corridor-marker--medium {
+  background: #d7921f;
+}
+
+.corridor-marker--high {
+  background: #b94a3a;
+}
+
+.corridor-marker--unknown {
+  background: #59645f;
 }

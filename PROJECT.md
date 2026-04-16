@@ -511,9 +511,9 @@ preparation, and release freeze.
 - [x] Implement `/api/segments`
 - [x] Implement `/api/traffic/latest`
 - [x] Implement `/api/traffic/history`
-- [ ] Build home / overview page
-- [ ] Build live corridor map page
-- [ ] Build historical analytics page
+- [x] Build home / overview page
+- [x] Build live corridor map page
+- [x] Build historical analytics page
 - [ ] Implement feature engineering pipeline
 - [ ] Train baseline models and save metrics/artifacts
 - [ ] Implement prediction persistence
@@ -594,6 +594,9 @@ The following items remain open:
   aggregation.
 - Traffic read APIs now expose the latest per-segment corridor state plus
   bounded historical raw, hourly, and daily views from SQLite.
+- The frontend baseline now contains final-route surfaces for overview, live
+  corridor state, and historical analytics, all reading internal API routes.
+- The live corridor page uses Leaflet for geographic corridor visualization.
 
 ## Risks and mitigations
 
