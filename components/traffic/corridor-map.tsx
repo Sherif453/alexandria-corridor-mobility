@@ -4,7 +4,10 @@ import { useEffect, useRef } from "react";
 import type { LayerGroup, Map as LeafletMap } from "leaflet";
 
 import type { TrafficSegmentPayload } from "@/lib/types/traffic";
-import { getCongestionTone } from "@/components/traffic/format";
+import {
+  formatCongestionLabel,
+  getCongestionTone,
+} from "@/components/traffic/format";
 
 type CorridorMapProps = {
   segments: TrafficSegmentPayload[];
@@ -86,7 +89,7 @@ export function CorridorMap({ segments }: CorridorMapProps) {
           })
           .bindPopup(
             `<strong>${segment.roadName}</strong><br/>Segment ${segment.order}<br/>Status: ${
-              label ?? "No observation"
+              formatCongestionLabel(label)
             }`,
           );
 

@@ -49,3 +49,19 @@ export function getCongestionTone(label: string | null | undefined) {
 
   return "slate" as const;
 }
+
+export function formatCongestionLabel(label: string | null | undefined): string {
+  if (label === "Low") {
+    return "Low congestion";
+  }
+
+  if (label === "Medium") {
+    return "Moderate congestion";
+  }
+
+  if (label === "High") {
+    return "Heavy congestion";
+  }
+
+  return "No data";
+}

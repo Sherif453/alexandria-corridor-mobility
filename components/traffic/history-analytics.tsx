@@ -7,6 +7,7 @@ import { StatusPill } from "@/components/status-pill";
 import { readApi } from "@/components/traffic/api";
 import {
   formatDateTime,
+  formatCongestionLabel,
   formatPercent,
   formatSpeed,
   getCongestionTone,
@@ -180,7 +181,7 @@ function BucketTable({ buckets }: { buckets: CorridorBucket[] }) {
                 </h4>
               </div>
               <StatusPill tone={getCongestionTone(bucket.dominantClass)}>
-                {bucket.dominantClass}
+                {formatCongestionLabel(bucket.dominantClass)}
               </StatusPill>
             </div>
             <div className="mt-4 grid grid-cols-3 gap-2">
@@ -231,7 +232,7 @@ function BucketTable({ buckets }: { buckets: CorridorBucket[] }) {
                 </td>
                 <td className="px-4 py-4">
                   <StatusPill tone={getCongestionTone(bucket.dominantClass)}>
-                    {bucket.dominantClass}
+                    {formatCongestionLabel(bucket.dominantClass)}
                   </StatusPill>
                 </td>
                 <td className="px-4 py-4 text-sm font-bold text-slate-800">

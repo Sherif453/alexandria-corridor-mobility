@@ -9,6 +9,7 @@ import { CongestionStack } from "@/components/traffic/congestion-stack";
 import { CorridorMap } from "@/components/traffic/corridor-map";
 import {
   formatDateTime,
+  formatCongestionLabel,
   formatPercent,
   formatSpeed,
   getCongestionTone,
@@ -30,7 +31,7 @@ function getSortedSegments(segments: TrafficSegmentPayload[]) {
 }
 
 function SegmentRow({ segment }: { segment: TrafficSegmentPayload }) {
-  const label = segment.observation?.congestionLabel ?? "No data";
+  const label = formatCongestionLabel(segment.observation?.congestionLabel);
   const tone = getCongestionTone(segment.observation?.congestionLabel);
 
   return (
@@ -63,7 +64,7 @@ function SegmentRow({ segment }: { segment: TrafficSegmentPayload }) {
 }
 
 function SegmentCard({ segment }: { segment: TrafficSegmentPayload }) {
-  const label = segment.observation?.congestionLabel ?? "No data";
+  const label = formatCongestionLabel(segment.observation?.congestionLabel);
   const tone = getCongestionTone(segment.observation?.congestionLabel);
 
   return (

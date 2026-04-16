@@ -25,7 +25,7 @@ export const CORRIDOR_NAME =
   "Alexandria Corridor Mobility Intelligence Corridor";
 export const CORRIDOR_SCOPE = "Victoria -> Sidi Gaber -> Raml (Mahattet El Raml)";
 export const CORRIDOR_SAMPLE_POINT_COUNT = 35;
-export const CORRIDOR_DEFINITION_VERSION = "2026-04-15.v3";
+export const CORRIDOR_DEFINITION_VERSION = "2026-04-16.v4";
 
 // Fixed points follow a documented corridor polyline across named localities on
 // the Abu Qir / Al-Horreya axis, rather than a direct interpolation between
@@ -96,6 +96,48 @@ export const CORRIDOR_ROUTE_WAYPOINTS: readonly CorridorAnchor[] = [
     sourceUrl: "https://wikimapia.org/1708314/Raml-Station-Area-Downtown",
   },
 ] as const;
+
+const CORRIDOR_SEGMENT_LOCALITIES = [
+  "Victoria Station",
+  "Victoria",
+  "Victoria - Bakos approach",
+  "Bakos east",
+  "Bakos",
+  "Bakos west",
+  "Bakos - Saba Pasha",
+  "Saba Pasha east",
+  "Saba Pasha",
+  "Saba Pasha west",
+  "Saba Pasha - Sidi Gaber",
+  "Sidi Gaber east approach",
+  "Sidi Gaber Station",
+  "Sidi Gaber",
+  "Sidi Gaber west",
+  "Sidi Gaber - Sporting",
+  "Sporting east",
+  "Sporting",
+  "Sporting west",
+  "Sporting - Camp Caesar",
+  "Camp Caesar east",
+  "Camp Caesar",
+  "Camp Caesar west",
+  "Camp Caesar - Shatby",
+  "Shatby east",
+  "Shatby",
+  "Shatby west",
+  "Shatby - El Raml",
+  "El Raml east approach",
+  "El Raml commercial area",
+  "El Raml Station approach",
+  "El Raml Station",
+  "Mahattet El Raml east",
+  "Mahattet El Raml",
+  "Raml Station terminus",
+] as const;
+
+if (CORRIDOR_SEGMENT_LOCALITIES.length !== CORRIDOR_SAMPLE_POINT_COUNT) {
+  throw new Error("Corridor locality labels must match the sample point count.");
+}
 
 function distanceBetween(
   start: { latitude: number; longitude: number },
@@ -191,8 +233,8 @@ function buildCorridorSegments(): CorridorSegmentDefinition[] {
 
     return {
       segmentId: `alex-corridor-${String(sortOrder).padStart(2, "0")}`,
-      displayName: `Al-Horreya / Abu Qir corridor sample ${String(sortOrder).padStart(2, "0")}`,
-      roadName: "Al-Horreya / Abu Qir corridor",
+      displayName: CORRIDOR_SEGMENT_LOCALITIES[index],
+      roadName: CORRIDOR_SEGMENT_LOCALITIES[index],
       geometryRef: toGeometryRef(point.latitude, point.longitude),
       roadType: CORRIDOR_ROAD_TYPE,
       latitude: point.latitude,

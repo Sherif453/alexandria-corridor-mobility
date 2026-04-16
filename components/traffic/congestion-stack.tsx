@@ -1,5 +1,8 @@
 import { StatusPill } from "@/components/status-pill";
-import { getCongestionTone } from "@/components/traffic/format";
+import {
+  formatCongestionLabel,
+  getCongestionTone,
+} from "@/components/traffic/format";
 
 type CongestionStackProps = {
   counts: Record<string, number>;
@@ -40,7 +43,7 @@ export function CongestionStack({ counts, total }: CongestionStackProps) {
         {labels.map((label) => (
           <div key={label} className="rounded-2xl bg-stone-50 p-3">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-              {label}
+              {formatCongestionLabel(label === "Unknown" ? null : label)}
             </p>
             <p className="mt-1 text-2xl font-black text-slate-950">{counts[label] ?? 0}</p>
           </div>

@@ -538,7 +538,7 @@ The following items remain open:
 - Exact monitored sample point coordinates
   - A fixed set of 35 monitored points is now defined in
     `lib/corridor/definition.ts`.
-  - The current v2 coordinates follow a documented corridor polyline through
+  - The current coordinates follow a documented corridor polyline through
     Victoria, Bakos, Saba Pasha, Sidi Gaber, Sporting, Camp Caesar, Shatby, and
     El Raml.
   - The remaining open part is whether they should later be refined to exact
@@ -577,6 +577,8 @@ The following items remain open:
   seeded into SQLite through `prisma/seed.ts`.
 - The current corridor monitoring plan uses 35 fixed points in a strict ordered
   chain across Victoria -> Sidi Gaber -> Raml.
+- Each monitored point now has a user-facing locality label instead of the
+  generic corridor road name.
 - The current corridor geometry no longer uses a straight anchor interpolation.
   It now samples a route polyline built from map-evidenced localities along the
   Alexandria east-west urban axis.
