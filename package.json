@@ -12,6 +12,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "db:seed": "TMPDIR=.tmp tsx prisma/seed.ts",
+    "features:build": "python3 python/features/build_features.py",
     "ingest:once": "TMPDIR=.tmp tsx scripts/ingest/run.ts",
     "ingest:scheduler": "TMPDIR=.tmp tsx scripts/ingest/scheduler.ts"
   },

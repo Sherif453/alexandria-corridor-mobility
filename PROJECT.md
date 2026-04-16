@@ -514,7 +514,7 @@ preparation, and release freeze.
 - [x] Build home / overview page
 - [x] Build live corridor map page
 - [x] Build historical analytics page
-- [ ] Implement feature engineering pipeline
+- [x] Implement feature engineering pipeline
 - [ ] Train baseline models and save metrics/artifacts
 - [ ] Implement prediction persistence
 - [ ] Implement `/api/predictions/latest`
@@ -604,6 +604,10 @@ The following items remain open:
 - The frontend baseline now contains final-route surfaces for overview, live
   corridor state, and historical analytics, all reading internal API routes.
 - The live corridor page uses Leaflet for geographic corridor visualization.
+- Feature engineering is implemented in Python under `python/features` and is
+  runnable through `npm run features:build`. It reads SQLite observations,
+  writes `FeatureSnapshot` rows, uses only current/past observations for feature
+  values, and stores the next valid observed congestion class as the target.
 
 ## Risks and mitigations
 
