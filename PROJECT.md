@@ -516,7 +516,7 @@ preparation, and release freeze.
 - [x] Build historical analytics page
 - [x] Implement feature engineering pipeline
 - [x] Train baseline models and save metrics/artifacts
-- [ ] Implement prediction persistence
+- [x] Implement prediction persistence
 - [ ] Implement `/api/predictions/latest`
 - [ ] Implement `/api/predictions/trend`
 - [ ] Build prediction page
@@ -613,6 +613,11 @@ The following items remain open:
   time-ordered train/validation/test splits, logistic regression as the baseline
   model, random forest as the main practical model, class-balanced training, and
   a naive last-class comparison.
+- Prediction persistence is implemented in Python under `python/models` and is
+  runnable through `npm run predictions:generate` after a model has been trained.
+  It loads the latest random forest artifact, scores the latest feature snapshot
+  per segment, writes one next-horizon prediction row per segment, and replaces
+  existing rows for the same model version and prediction timestamp.
 
 ## Risks and mitigations
 
@@ -662,6 +667,7 @@ Current working setup commands:
 - Install Python ML dependencies: `npm run python:setup`
 - Build ML features from SQLite observations: `npm run features:build`
 - Train baseline congestion models: `npm run models:train`
+- Generate persisted latest predictions: `npm run predictions:generate`
 - Open Prisma Studio: `npx prisma studio`
 
 Still pending:
