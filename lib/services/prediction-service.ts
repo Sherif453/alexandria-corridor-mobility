@@ -167,36 +167,36 @@ function getTrend(params: {
   if (predictedScore > currentScore) {
     return {
       trend: "worsening",
-      reason: `Predicted class moves from ${params.observation.congestionLabel} to ${params.prediction.predictedLabel}.`,
+      reason: `Congestion is forecast to increase from ${params.observation.congestionLabel} to ${params.prediction.predictedLabel}.`,
     };
   }
 
   if (predictedScore < currentScore) {
     return {
       trend: "improving",
-      reason: `Predicted class moves from ${params.observation.congestionLabel} to ${params.prediction.predictedLabel}.`,
+      reason: `Congestion is forecast to decrease from ${params.observation.congestionLabel} to ${params.prediction.predictedLabel}.`,
     };
   }
 
   if (params.feature?.speedChangeRate !== null && params.feature?.speedChangeRate !== undefined) {
     if (params.feature.speedChangeRate < -0.15) {
       return {
-        trend: "worsening",
-        reason: "Predicted class is stable, but recent speed is falling.",
+        trend: "stable",
+        reason: `Congestion is forecast to remain ${params.prediction.predictedLabel}. Recent speed is falling, so this point should be watched.`,
       };
     }
 
     if (params.feature.speedChangeRate > 0.15) {
       return {
-        trend: "improving",
-        reason: "Predicted class is stable, and recent speed is rising.",
+        trend: "stable",
+        reason: `Congestion is forecast to remain ${params.prediction.predictedLabel}. Recent speed is rising, but the congestion class is unchanged.`,
       };
     }
   }
 
   return {
     trend: "stable",
-    reason: `Predicted class remains ${params.prediction.predictedLabel}.`,
+    reason: `Congestion is forecast to remain ${params.prediction.predictedLabel}.`,
   };
 }
 

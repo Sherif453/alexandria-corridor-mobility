@@ -105,18 +105,24 @@ export async function getInsightsPayload() {
 
     insights.push({
       id: "worsening-trend",
-      title: "Several points are trending worse",
+      title:
+        worseningSegments.length === 1
+          ? "Congestion is forecast to increase at one point"
+          : "Congestion is forecast to increase at several points",
       severity: "watch",
-      body: `${worseningSegments.length} monitored point${worseningSegments.length === 1 ? "" : "s"} show a worsening near-term trend.`,
-      evidence: `Watch ${names}.`,
+      body: `${worseningSegments.length} monitored point${worseningSegments.length === 1 ? " is" : "s are"} forecast to move into a higher congestion class.`,
+      evidence: `Watch ${names}. Worsening means the predicted congestion class is higher than the latest observed class.`,
     });
   } else if (improvingSegments.length > 0) {
     insights.push({
       id: "improving-trend",
-      title: "Some points are improving",
+      title:
+        improvingSegments.length === 1
+          ? "Congestion is forecast to decrease at one point"
+          : "Congestion is forecast to decrease at some points",
       severity: "info",
-      body: `${improvingSegments.length} monitored point${improvingSegments.length === 1 ? "" : "s"} show improving near-term conditions.`,
-      evidence: "Trend compares the latest observed feature state with the next-horizon prediction.",
+      body: `${improvingSegments.length} monitored point${improvingSegments.length === 1 ? " is" : "s are"} forecast to move into a lower congestion class.`,
+      evidence: "Improving means the predicted congestion class is lower than the latest observed class.",
     });
   }
 

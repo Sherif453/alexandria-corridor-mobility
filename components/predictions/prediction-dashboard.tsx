@@ -42,6 +42,25 @@ function getFreshnessTone(status: LatestPredictionsPayload["freshness"]["status"
   return "slate" as const;
 }
 
+function TrendDefinitionCard({
+  label,
+  tone,
+  description,
+}: {
+  label: string;
+  tone: "green" | "slate" | "red" | "amber";
+  description: string;
+}) {
+  return (
+    <div className="rounded-3xl border border-black/10 bg-stone-50 p-4">
+      <StatusPill tone={tone}>{label}</StatusPill>
+      <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
+        {description}
+      </p>
+    </div>
+  );
+}
+
 function TrendCard({ segment }: { segment: PredictionTrendSegmentPayload }) {
   return (
     <article className="rounded-3xl border border-black/10 bg-white/85 p-4 shadow-sm">
@@ -279,23 +298,58 @@ export function PredictionDashboard() {
             <MetricCard
               label="Improving"
               value={String(trend.summary.improving)}
+              detail="Predicted congestion class is lower than the latest observed class."
               tone="green"
             />
             <MetricCard
               label="Stable"
               value={String(trend.summary.stable)}
+              detail="Predicted congestion class is the same as the latest observed class."
             />
             <MetricCard
               label="Worsening"
               value={String(trend.summary.worsening)}
+              detail="Predicted congestion class is higher than the latest observed class."
               tone={trend.summary.worsening > 0 ? "red" : "default"}
             />
             <MetricCard
               label="Uncertain"
               value={String(trend.summary.uncertain)}
+              detail="Current observation or prediction is missing."
               tone={trend.summary.uncertain > 0 ? "amber" : "default"}
             />
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-[2rem] border border-black/10 bg-white/80 p-5 shadow-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <h3 className="text-xl font-black text-slate-950">What trend means</h3>
+          <p className="text-sm font-semibold text-slate-600">
+            Trend is based on congestion class movement, not speed alone.
+          </p>
+        </div>
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <TrendDefinitionCard
+            label="Improving"
+            tone="green"
+            description="Congestion is forecast to decrease, for example Medium to Low or High to Medium."
+          />
+          <TrendDefinitionCard
+            label="Stable"
+            tone="slate"
+            description="Congestion is forecast to stay in the same class. Speed may move, but the class is unchanged."
+          />
+          <TrendDefinitionCard
+            label="Worsening"
+            tone="red"
+            description="Congestion is forecast to increase, for example Low to Medium or Medium to High."
+          />
+          <TrendDefinitionCard
+            label="Uncertain"
+            tone="amber"
+            description="The app cannot classify the trend because the current observation or prediction is missing."
+          />
         </div>
       </section>
 

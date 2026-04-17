@@ -622,6 +622,10 @@ The following items remain open:
   summaries through internal Next.js API routes. The prediction page reads only
   those backend routes and surfaces model version, confidence, forecast class,
   current observed class, and segment-level trend explanations.
+- Prediction trend language is defined as congestion-class movement:
+  improving means the forecast class is lower than the latest observed class,
+  stable means the forecast class is unchanged, and worsening means the forecast
+  class is higher. Recent speed movement is supporting context only.
 - Insights are deterministic backend summaries of stored observations,
   persisted predictions, model warnings, confidence, and trend state. They do
   not add a new product scope; they make the existing ML outputs explainable.

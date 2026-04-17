@@ -143,6 +143,30 @@ export function InsightsDashboard() {
         </p>
       </section>
 
+      <section className="rounded-[2rem] border border-black/10 bg-white/80 p-5 shadow-sm">
+        <h3 className="text-xl font-black text-slate-950">How to read trend language</h3>
+        <div className="mt-5 grid gap-3 md:grid-cols-3">
+          <div className="rounded-3xl bg-emerald-50 p-4">
+            <StatusPill tone="green">improving</StatusPill>
+            <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
+              Congestion is forecast to decrease into a lower class.
+            </p>
+          </div>
+          <div className="rounded-3xl bg-stone-100 p-4">
+            <StatusPill tone="slate">stable</StatusPill>
+            <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
+              Congestion is forecast to remain in the same class.
+            </p>
+          </div>
+          <div className="rounded-3xl bg-red-50 p-4">
+            <StatusPill tone="red">worsening</StatusPill>
+            <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
+              Congestion is forecast to increase into a higher class.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section className="grid gap-4 lg:grid-cols-2">
         {state.insights.map((insight) => (
           <InsightCard key={insight.id} insight={insight} />
