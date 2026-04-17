@@ -167,8 +167,9 @@ The application data flow is:
    artifacts, and write metadata to `model_runs`.
 6. Inference jobs score the latest corridor state and store results in
    `predictions`.
-7. Scenario jobs run SUMO-based baseline, disruption, and mitigation cases and
-   persist summarized metrics in `scenario_results`.
+7. Scenario jobs run SUMO-based baseline, disruption, and mitigation cases,
+   write auditable SUMO artifacts under `data/exports/scenarios`, and persist
+   summarized metrics in `scenario_results`.
 8. Next.js API routes read from repositories and services and return stable JSON
    payloads.
 9. Frontend pages poll the API and present status, freshness, confidence, trend
@@ -383,7 +384,11 @@ dependency.
 ### Storage and exposure
 
 Scenario summaries are stored in `scenario_results`, and scenario data is
-exposed through the scenario API routes and the frontend comparison page.
+exposed through the scenario API routes and the frontend comparison page. The
+current implementation generates a SUMO PlainXML network from the fixed
+route-aligned monitored points, converts it with `netconvert`, runs `sumo`, and
+extracts trip time, delay, stopped time, queue length, completed vehicles, and
+relative travel-time change.
 
 ## Quota strategy
 
@@ -522,13 +527,13 @@ preparation, and release freeze.
 - [x] Build prediction page
 - [x] Implement `/api/insights`
 - [x] Build insights page
-- [ ] Implement scenario pipeline with SUMO
-- [ ] Implement `/api/scenarios`
-- [ ] Implement `/api/scenarios/[id]`
-- [ ] Build scenario comparison page
-- [ ] Build methodology page
-- [ ] Implement `/api/admin/refresh`
-- [ ] Add tests for core flows
+- [x] Implement scenario pipeline with SUMO
+- [x] Implement `/api/scenarios`
+- [x] Implement `/api/scenarios/[id]`
+- [x] Build scenario comparison page
+- [x] Build methodology page
+- [x] Implement `/api/admin/refresh`
+- [x] Add tests for core flows
 - [ ] Finalize docs, tests, screenshots, and run instructions
 
 ## Open questions
@@ -545,12 +550,14 @@ The following items remain open:
     road-centerline monitoring coordinates after live ingestion is running
     reliably.
 
-- SUMO network import workflow and preprocessing path
-  - Use OSM corridor extraction → network cleaning → SUMO export/import →
-    scenario setup → metrics extraction.
-  - The high-level pipeline is defined, but the exact tooling and scripts for
-    converting and preparing the corridor network for SUMO remain to be
-    finalized during implementation.
+- SUMO network refinement path
+  - The first working scenario pipeline uses SUMO PlainXML generated from the
+    fixed monitored corridor points because those points are already the source
+    of truth for the application.
+  - A later refinement can replace or enrich this with an OSM-derived SUMO
+    network if time allows, but the current product path already runs through
+    `netconvert`, `sumo`, XML outputs, metric extraction, SQLite persistence,
+    scenario APIs, and the comparison UI.
 
 ## Decisions made
 
@@ -632,6 +639,18 @@ The following items remain open:
   implementation terminology such as model artifacts, feature snapshots,
   backend storage, and provider/database names; those details stay in code and
   documentation, not the live app copy.
+- Scenario definitions are stored in `lib/scenarios/definitions.json` so the
+  Python SUMO runner and TypeScript APIs use the same baseline, disruption, and
+  mitigation scenario set.
+- Scenario simulation artifacts are preserved under
+  `data/exports/scenarios/<scenario-version>/`, and only summarized metrics are
+  written to SQLite.
+- Manual refresh is implemented as `POST /api/admin/refresh`, but it is
+  disabled by default through `ADMIN_REFRESH_ENABLED=false` because the project
+  intentionally has no authentication.
+- CI is implemented with GitHub Actions and runs install, Prisma generation,
+  migration deploy, seeding, typecheck, lint, tests, Python syntax checks, and
+  production build.
 
 ## Risks and mitigations
 
@@ -682,12 +701,20 @@ Current working setup commands:
 - Build ML features from SQLite observations: `npm run features:build`
 - Train baseline congestion models: `npm run models:train`
 - Generate persisted latest predictions: `npm run predictions:generate`
+- Run SUMO scenarios: `npm run scenarios:run`
+- Run tests: `npm test`
+- Build production app: `npm run build`
 - Open Prisma Studio: `npx prisma studio`
 
 Still pending:
 
-- Inference workflow
-- Scenario generation workflow
+- Final QA, screenshots, and release documentation
+
+SUMO dependency:
+
+- Local WSL or VPS install: `sudo apt install -y sumo sumo-tools`
+- The scenario command requires both `sumo` and `netconvert` to be available on
+  `PATH`.
 
 ## Future notes
 

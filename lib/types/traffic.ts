@@ -190,3 +190,62 @@ export type InsightsPayload = {
   };
   insights: InsightPayload[];
 };
+
+export type ScenarioMetricPayload = {
+  name: string;
+  label: string;
+  unit: "seconds" | "meters" | "vehicles" | "percent";
+  higherIsBetter: boolean;
+  description: string;
+  value: number;
+  baselineValue: number | null;
+  delta: number | null;
+  deltaPercent: number | null;
+};
+
+export type ScenarioSummaryPayload = {
+  id: string;
+  name: string;
+  type: "baseline" | "disruption" | "mitigation";
+  typeLabel: string;
+  summary: string;
+  assumptions: string[];
+  status: "ready" | "missing";
+  artifactPath: string | null;
+  durationSeconds: number | null;
+  createdAtUtc: string | null;
+  headline: {
+    averageTravelTimeSeconds: number | null;
+    averageDelaySeconds: number | null;
+    maxQueueLengthMeters: number | null;
+    relativeTravelTimeChangePercent: number | null;
+  };
+  metrics: ScenarioMetricPayload[];
+};
+
+export type ScenarioListPayload = {
+  generatedAtUtc: string;
+  latestVersion: string | null;
+  status: "ready" | "missing";
+  message: string;
+  scenarios: ScenarioSummaryPayload[];
+};
+
+export type ScenarioDetailPayload = {
+  generatedAtUtc: string;
+  latestVersion: string | null;
+  scenario: ScenarioSummaryPayload;
+  baseline: ScenarioSummaryPayload | null;
+};
+
+export type AdminRefreshPayload = {
+  generatedAtUtc: string;
+  action: "ingest" | "features" | "predictions" | "scenarios" | "all";
+  status: "completed";
+  steps: Array<{
+    name: string;
+    command: string;
+    durationMs: number;
+    outputTail: string;
+  }>;
+};

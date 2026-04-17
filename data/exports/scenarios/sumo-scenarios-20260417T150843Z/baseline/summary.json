@@ -1,0 +1,21 @@
+{
+  "assumptions": [
+    "All monitored areas remain open.",
+    "Demand follows the current corridor level.",
+    "Speeds are calibrated from the latest collected readings when available."
+  ],
+  "durationSeconds": 900,
+  "metrics": {
+    "average_delay_seconds": 39.67941666666666,
+    "average_travel_time_seconds": 453.5,
+    "average_waiting_time_seconds": 0.0,
+    "completed_vehicle_count": 120.0,
+    "max_queue_length_meters": 0.0,
+    "relative_travel_time_change_percent": 0.0
+  },
+  "name": "Current corridor baseline",
+  "scenarioId": "baseline",
+  "scenarioVersion": "sumo-scenarios-20260417T150843Z",
+  "summary": "Normal corridor operation using the latest collected speeds.",
+  "type": "baseline"
+}

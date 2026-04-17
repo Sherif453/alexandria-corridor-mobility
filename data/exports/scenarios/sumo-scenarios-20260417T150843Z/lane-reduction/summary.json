@@ -1,0 +1,21 @@
+{
+  "assumptions": [
+    "The affected area is reduced to one usable lane.",
+    "Traffic demand stays at the current corridor level.",
+    "Vehicle speeds are reduced only inside the affected area."
+  ],
+  "durationSeconds": 900,
+  "metrics": {
+    "average_delay_seconds": 58.5255,
+    "average_travel_time_seconds": 453.5,
+    "average_waiting_time_seconds": 0.0,
+    "completed_vehicle_count": 120.0,
+    "max_queue_length_meters": 190.8,
+    "relative_travel_time_change_percent": 0.0
+  },
+  "name": "Lane reduction near Saba Pasha and Stanley",
+  "scenarioId": "lane-reduction",
+  "scenarioVersion": "sumo-scenarios-20260417T150843Z",
+  "summary": "A partial closure reduces capacity around the Saba Pasha and Stanley area.",
+  "type": "disruption"
+}

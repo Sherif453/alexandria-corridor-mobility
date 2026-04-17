@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='utf-8'?>
+<nodes>
+  <node id="node_001" x="0.00" y="0.00" type="priority" />
+  <node id="node_002" x="-149.70" y="-296.45" type="priority" />
+  <node id="node_003" x="-299.41" y="-592.89" type="priority" />
+  <node id="node_004" x="-449.20" y="-889.22" type="priority" />
+  <node id="node_005" x="-598.91" y="-1185.67" type="priority" />
+  <node id="node_006" x="-748.61" y="-1482.11" type="priority" />
+  <node id="node_007" x="-969.98" y="-1585.31" type="priority" />
+  <node id="node_008" x="-1257.30" y="-1510.61" type="priority" />
+  <node id="node_009" x="-1544.71" y="-1436.03" type="priority" />
+  <node id="node_010" x="-1832.03" y="-1361.33" type="priority" />
+  <node id="node_011" x="-2119.35" y="-1286.75" type="priority" />
+  <node id="node_012" x="-2317.30" y="-1494.80" type="priority" />
+  <node id="node_013" x="-2493.85" y="-1770.32" type="priority" />
+  <node id="node_014" x="-2670.48" y="-2045.73" type="priority" />
+  <node id="node_015" x="-2847.02" y="-2321.13" type="priority" />
+  <node id="node_016" x="-3023.66" y="-2596.54" type="priority" />
+  <node id="node_017" x="-3200.20" y="-2872.06" type="priority" />
+  <node id="node_018" x="-3376.84" y="-3147.46" type="priority" />
+  <node id="node_019" x="-3631.70" y="-3279.15" type="priority" />
+  <node id="node_020" x="-3919.78" y="-3350.18" type="priority" />
+  <node id="node_021" x="-4207.77" y="-3421.09" type="priority" />
+  <node id="node_022" x="-4490.33" y="-3514.60" type="priority" />
+  <node id="node_023" x="-4766.99" y="-3632.15" type="priority" />
+  <node id="node_024" x="-5043.65" y="-3749.59" type="priority" />
+  <node id="node_025" x="-5320.31" y="-3867.15" type="priority" />
+  <node id="node_026" x="-5565.19" y="-4019.65" type="priority" />
+  <node id="node_027" x="-5649.60" y="-4349.50" type="priority" />
+  <node id="node_028" x="-5734.02" y="-4679.34" type="priority" />
+  <node id="node_029" x="-5818.43" y="-5009.18" type="priority" />
+  <node id="node_030" x="-5902.85" y="-5339.02" type="priority" />
+  <node id="node_031" x="-6167.14" y="-5402.03" type="priority" />
+  <node id="node_032" x="-6461.02" y="-5421.17" type="priority" />
+  <node id="node_033" x="-6754.91" y="-5440.21" type="priority" />
+  <node id="node_034" x="-7048.80" y="-5459.36" type="priority" />
+  <node id="node_035" x="-7342.68" y="-5478.39" type="priority" />
+</nodes>

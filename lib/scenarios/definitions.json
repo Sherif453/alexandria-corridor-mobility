@@ -1,0 +1,50 @@
+[
+  {
+    "id": "baseline",
+    "name": "Current corridor baseline",
+    "type": "baseline",
+    "sortOrder": 1,
+    "summary": "Normal corridor operation using the latest collected speeds.",
+    "assumptions": [
+      "All monitored areas remain open.",
+      "Demand follows the current corridor level.",
+      "Speeds are calibrated from the latest collected readings when available."
+    ],
+    "affectedSegmentIds": [],
+    "demandMultiplier": 1,
+    "affectedSpeedMultiplier": 1,
+    "affectedLaneCount": null
+  },
+  {
+    "id": "lane-reduction",
+    "name": "Lane reduction near Saba Pasha and Stanley",
+    "type": "disruption",
+    "sortOrder": 2,
+    "summary": "A partial closure reduces capacity around the Saba Pasha and Stanley area.",
+    "assumptions": [
+      "The affected area is reduced to one usable lane.",
+      "Traffic demand stays at the current corridor level.",
+      "Vehicle speeds are reduced only inside the affected area."
+    ],
+    "affectedSegmentIds": ["alex-corridor-12", "alex-corridor-13"],
+    "demandMultiplier": 1,
+    "affectedSpeedMultiplier": 0.45,
+    "affectedLaneCount": 1
+  },
+  {
+    "id": "detour-mitigation",
+    "name": "Managed detour and signal support",
+    "type": "mitigation",
+    "sortOrder": 3,
+    "summary": "The same disruption is paired with demand diversion and smoother movement through the affected area.",
+    "assumptions": [
+      "Some trips are diverted before reaching the affected area.",
+      "Traffic control keeps vehicles moving more smoothly than the disruption-only case.",
+      "The affected area still has reduced capacity."
+    ],
+    "affectedSegmentIds": ["alex-corridor-12", "alex-corridor-13"],
+    "demandMultiplier": 0.82,
+    "affectedSpeedMultiplier": 0.65,
+    "affectedLaneCount": 1
+  }
+]

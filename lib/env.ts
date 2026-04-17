@@ -24,6 +24,11 @@ const envSchema = z.object({
   INGEST_DAILY_REQUEST_CAP: z.coerce.number().int().positive().default(2450),
   INGEST_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(10000),
   INGEST_MAX_RETRIES: z.coerce.number().int().min(0).max(5).default(2),
+  ADMIN_REFRESH_ENABLED: z
+    .enum(["true", "false", "1", "0"])
+    .default("false")
+    .transform((value) => value === "true" || value === "1"),
+  ADMIN_REFRESH_MAX_SECONDS: z.coerce.number().int().positive().default(420),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;

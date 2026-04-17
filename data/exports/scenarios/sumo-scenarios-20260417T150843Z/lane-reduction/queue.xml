@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2026-04-17 17:08:56 by Eclipse SUMO sumo Version 1.18.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="/home/sherif453/code/alex-mobility/data/exports/scenarios/sumo-scenarios-20260417T150843Z/lane-reduction/network.net.xml"/>
+        <route-files value="/home/sherif453/code/alex-mobility/data/exports/scenarios/sumo-scenarios-20260417T150843Z/lane-reduction/routes.rou.xml"/>
+        <additional-files value="/home/sherif453/code/alex-mobility/data/exports/scenarios/sumo-scenarios-20260417T150843Z/lane-reduction/additional.add.xml"/>
+    </input>
+
+    <output>
+        <queue-output value="/home/sherif453/code/alex-mobility/data/exports/scenarios/sumo-scenarios-20260417T150843Z/lane-reduction/queue.xml"/>
+        <queue-output.period value="60"/>
+        <summary-output value="/home/sherif453/code/alex-mobility/data/exports/scenarios/sumo-scenarios-20260417T150843Z/lane-reduction/summary.xml"/>
+        <tripinfo-output value="/home/sherif453/code/alex-mobility/data/exports/scenarios/sumo-scenarios-20260417T150843Z/lane-reduction/tripinfo.xml"/>
+        <tripinfo-output.write-unfinished value="true"/>
+    </output>
+
+    <time>
+        <begin value="0"/>
+        <end value="900"/>
+    </time>
+
+    <report>
+        <no-step-log value="true"/>
+    </report>
+
+    <gui_only>
+        <quit-on-end value="true"/>
+    </gui_only>
+
+</configuration>
+-->
+
+<queue-export xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/queue_file.xsd">
+    <data timestep="0.00">
+        <lanes/>
+    </data>
+    <data timestep="60.00">
+        <lanes/>
+    </data>
+    <data timestep="120.00">
+        <lanes/>
+    </data>
+    <data timestep="180.00">
+        <lanes/>
+    </data>
+    <data timestep="240.00">
+        <lanes/>
+    </data>
+    <data timestep="300.00">
+        <lanes/>
+    </data>
+    <data timestep="360.00">
+        <lanes/>
+    </data>
+    <data timestep="420.00">
+        <lanes/>
+    </data>
+    <data timestep="480.00">
+        <lanes/>
+    </data>
+    <data timestep="540.00">
+        <lanes/>
+    </data>
+    <data timestep="600.00">
+        <lanes/>
+    </data>
+    <data timestep="660.00">
+        <lanes>
+            <lane id="edge_011_0" queueing_time="0.00" queueing_length="0.00" queueing_length_experimental="111.23"/>
+        </lanes>
+    </data>
+    <data timestep="720.00">
+        <lanes/>
+    </data>
+    <data timestep="780.00">
+        <lanes>
+            <lane id="edge_012_0" queueing_time="0.00" queueing_length="0.00" queueing_length_experimental="145.72"/>
+        </lanes>
+    </data>
+    <data timestep="840.00">
+        <lanes>
+            <lane id="edge_012_0" queueing_time="0.00" queueing_length="0.00" queueing_length_experimental="190.80"/>
+        </lanes>
+    </data>
+</queue-export>

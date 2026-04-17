@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='utf-8'?>
+<edges>
+  <edge id="edge_001" from="node_001" to="node_002" numLanes="2" speed="8.33" length="331.73" priority="1" />
+  <edge id="edge_002" from="node_002" to="node_003" numLanes="2" speed="8.33" length="331.73" priority="1" />
+  <edge id="edge_003" from="node_003" to="node_004" numLanes="2" speed="8.33" length="331.68" priority="1" />
+  <edge id="edge_004" from="node_004" to="node_005" numLanes="2" speed="8.33" length="331.73" priority="1" />
+  <edge id="edge_005" from="node_005" to="node_006" numLanes="2" speed="8.33" length="331.74" priority="1" />
+  <edge id="edge_006" from="node_006" to="node_007" numLanes="2" speed="8.33" length="243.99" priority="1" />
+  <edge id="edge_007" from="node_007" to="node_008" numLanes="2" speed="8.33" length="296.58" priority="1" />
+  <edge id="edge_008" from="node_008" to="node_009" numLanes="2" speed="8.33" length="296.64" priority="1" />
+  <edge id="edge_009" from="node_009" to="node_010" numLanes="2" speed="8.33" length="296.57" priority="1" />
+  <edge id="edge_010" from="node_010" to="node_011" numLanes="2" speed="8.33" length="296.54" priority="1" />
+  <edge id="edge_011" from="node_011" to="node_012" numLanes="1" speed="5.42" length="286.88" priority="1" />
+  <edge id="edge_012" from="node_012" to="node_013" numLanes="1" speed="5.42" length="326.87" priority="1" />
+  <edge id="edge_013" from="node_013" to="node_014" numLanes="2" speed="8.33" length="326.83" priority="1" />
+  <edge id="edge_014" from="node_014" to="node_015" numLanes="2" speed="8.33" length="326.78" priority="1" />
+  <edge id="edge_015" from="node_015" to="node_016" numLanes="2" speed="8.33" length="326.84" priority="1" />
+  <edge id="edge_016" from="node_016" to="node_017" numLanes="2" speed="8.33" length="326.88" priority="1" />
+  <edge id="edge_017" from="node_017" to="node_018" numLanes="2" speed="8.33" length="326.84" priority="1" />
+  <edge id="edge_018" from="node_018" to="node_019" numLanes="2" speed="8.33" length="286.63" priority="1" />
+  <edge id="edge_019" from="node_019" to="node_020" numLanes="2" speed="8.33" length="296.46" priority="1" />
+  <edge id="edge_020" from="node_020" to="node_021" numLanes="2" speed="8.33" length="296.34" priority="1" />
+  <edge id="edge_021" from="node_021" to="node_022" numLanes="2" speed="8.33" length="297.39" priority="1" />
+  <edge id="edge_022" from="node_022" to="node_023" numLanes="2" speed="8.33" length="300.35" priority="1" />
+  <edge id="edge_023" from="node_023" to="node_024" numLanes="2" speed="8.33" length="300.31" priority="1" />
+  <edge id="edge_024" from="node_024" to="node_025" numLanes="2" speed="8.33" length="300.35" priority="1" />
+  <edge id="edge_025" from="node_025" to="node_026" numLanes="2" speed="8.33" length="288.24" priority="1" />
+  <edge id="edge_026" from="node_026" to="node_027" numLanes="2" speed="8.33" length="340.10" priority="1" />
+  <edge id="edge_027" from="node_027" to="node_028" numLanes="2" speed="8.33" length="340.10" priority="1" />
+  <edge id="edge_028" from="node_028" to="node_029" numLanes="2" speed="8.33" length="340.10" priority="1" />
+  <edge id="edge_029" from="node_029" to="node_030" numLanes="2" speed="8.33" length="340.10" priority="1" />
+  <edge id="edge_030" from="node_030" to="node_031" numLanes="2" speed="8.33" length="271.52" priority="1" />
+  <edge id="edge_031" from="node_031" to="node_032" numLanes="2" speed="8.33" length="294.33" priority="1" />
+  <edge id="edge_032" from="node_032" to="node_033" numLanes="2" speed="8.33" length="294.32" priority="1" />
+  <edge id="edge_033" from="node_033" to="node_034" numLanes="2" speed="8.33" length="294.33" priority="1" />
+  <edge id="edge_034" from="node_034" to="node_035" numLanes="2" speed="8.33" length="294.32" priority="1" />
+</edges>

@@ -16,8 +16,10 @@
     "features:build": "python3 python/features/build_features.py",
     "models:train": ".venv/bin/python python/models/train_baseline.py",
     "predictions:generate": ".venv/bin/python python/models/generate_predictions.py",
+    "scenarios:run": "python3 python/simulation/run_sumo_scenarios.py",
     "ingest:once": "TMPDIR=.tmp tsx scripts/ingest/run.ts",
-    "ingest:scheduler": "TMPDIR=.tmp tsx scripts/ingest/scheduler.ts"
+    "ingest:scheduler": "TMPDIR=.tmp tsx scripts/ingest/scheduler.ts",
+    "test": "TMPDIR=.tmp node --import tsx --test tests/*.test.ts"
   },
   "keywords": [],
   "author": "",
