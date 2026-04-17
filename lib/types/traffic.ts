@@ -96,3 +96,97 @@ export type TrafficHistoryPayload = {
   };
   series: Array<RawTrafficHistoryPoint | AggregatedTrafficHistoryPoint>;
 };
+
+export type PredictionPayload = {
+  id: string;
+  segmentId: string;
+  timestampUtc: string;
+  predictedLabel: string;
+  confidence: number | null;
+  modelVersion: string;
+  createdAt: string;
+};
+
+export type PredictionSegmentPayload = {
+  segmentId: string;
+  roadName: string;
+  roadType: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  order: number;
+  prediction: PredictionPayload | null;
+  latestObservation: TrafficObservationPayload | null;
+};
+
+export type LatestPredictionsPayload = {
+  corridor: CorridorPayload;
+  generatedAtUtc: string;
+  model: {
+    version: string | null;
+    runId: string | null;
+    modelName: string | null;
+    artifactPath: string | null;
+    createdAt: string | null;
+    warnings: string[];
+  };
+  freshness: {
+    status: "fresh" | "stale" | "empty";
+    latestPredictionTimestampUtc: string | null;
+    predictedSegments: number;
+    missingSegments: number;
+  };
+  summary: {
+    predictionCounts: Record<string, number>;
+    averageConfidence: number | null;
+    lowConfidenceCount: number;
+    currentCongestionCounts: Record<string, number>;
+  };
+  segments: PredictionSegmentPayload[];
+};
+
+export type PredictionTrendSegmentPayload = {
+  segmentId: string;
+  roadName: string;
+  order: number;
+  latestFeatureTimestampUtc: string | null;
+  latestObservedLabel: string | null;
+  predictedLabel: string | null;
+  confidence: number | null;
+  speedChangeRate: number | null;
+  recentAverageSpeed: number | null;
+  trend: "improving" | "stable" | "worsening" | "uncertain";
+  reason: string;
+};
+
+export type PredictionTrendPayload = {
+  corridor: CorridorPayload;
+  generatedAtUtc: string;
+  modelVersion: string | null;
+  summary: {
+    improving: number;
+    stable: number;
+    worsening: number;
+    uncertain: number;
+    averageConfidence: number | null;
+  };
+  segments: PredictionTrendSegmentPayload[];
+};
+
+export type InsightPayload = {
+  id: string;
+  title: string;
+  severity: "info" | "watch" | "warning";
+  body: string;
+  evidence: string;
+};
+
+export type InsightsPayload = {
+  corridor: CorridorPayload;
+  generatedAtUtc: string;
+  modelVersion: string | null;
+  dataQuality: {
+    status: "ready" | "limited" | "missing";
+    message: string;
+  };
+  insights: InsightPayload[];
+};

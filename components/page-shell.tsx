@@ -8,6 +8,8 @@ const navigation = [
   { href: "/", label: "Overview" },
   { href: "/live", label: "Live corridor" },
   { href: "/history", label: "History" },
+  { href: "/predictions", label: "Predictions" },
+  { href: "/insights", label: "Insights" },
 ];
 
 export function PageShell({ children }: PageShellProps) {
@@ -24,7 +26,7 @@ export function PageShell({ children }: PageShellProps) {
                 Mobility Intelligence
               </h1>
             </Link>
-            <nav className="grid w-full grid-cols-3 gap-2 lg:w-auto lg:flex lg:flex-wrap">
+            <nav className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:w-auto lg:flex lg:flex-wrap">
               {navigation.map((item) => (
                 <Link
                   key={item.href}

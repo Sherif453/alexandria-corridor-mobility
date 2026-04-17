@@ -517,11 +517,11 @@ preparation, and release freeze.
 - [x] Implement feature engineering pipeline
 - [x] Train baseline models and save metrics/artifacts
 - [x] Implement prediction persistence
-- [ ] Implement `/api/predictions/latest`
-- [ ] Implement `/api/predictions/trend`
-- [ ] Build prediction page
-- [ ] Implement `/api/insights`
-- [ ] Build insights page
+- [x] Implement `/api/predictions/latest`
+- [x] Implement `/api/predictions/trend`
+- [x] Build prediction page
+- [x] Implement `/api/insights`
+- [x] Build insights page
 - [ ] Implement scenario pipeline with SUMO
 - [ ] Implement `/api/scenarios`
 - [ ] Implement `/api/scenarios/[id]`
@@ -529,7 +529,7 @@ preparation, and release freeze.
 - [ ] Build methodology page
 - [ ] Implement `/api/admin/refresh`
 - [ ] Add tests for core flows
-- [ ] Finalize docs, screenshots, and run instructions
+- [ ] Finalize docs, tests, screenshots, and run instructions
 
 ## Open questions
 
@@ -614,10 +614,17 @@ The following items remain open:
   model, random forest as the main practical model, class-balanced training, and
   a naive last-class comparison.
 - Prediction persistence is implemented in Python under `python/models` and is
-  runnable through `npm run predictions:generate` after a model has been trained.
-  It loads the latest random forest artifact, scores the latest feature snapshot
-  per segment, writes one next-horizon prediction row per segment, and replaces
-  existing rows for the same model version and prediction timestamp.
+  runnable through `npm run predictions:generate` after a model has been
+  trained. It loads the latest random forest artifact, scores the latest feature
+  snapshot per segment, writes one next-horizon prediction row per segment, and
+  replaces existing rows for the same model version and prediction timestamp.
+- Prediction APIs now expose latest persisted forecasts and deterministic trend
+  summaries through internal Next.js API routes. The prediction page reads only
+  those backend routes and surfaces model version, confidence, forecast class,
+  current observed class, and segment-level trend explanations.
+- Insights are deterministic backend summaries of stored observations,
+  persisted predictions, model warnings, confidence, and trend state. They do
+  not add a new product scope; they make the existing ML outputs explainable.
 
 ## Risks and mitigations
 
