@@ -8,7 +8,7 @@ export async function readApi<T>(path: string): Promise<T> {
 
   if (!response.ok || payload.status === "error") {
     const message =
-      payload.status === "error" ? payload.error.message : "The API request failed.";
+      payload.status === "error" ? payload.error.message : "The request failed.";
     throw new Error(message);
   }
 

@@ -17,7 +17,7 @@ export async function GET() {
     return apiError(
       500,
       "SEGMENT_READ_FAILED",
-      "Unable to load corridor segment metadata.",
+      "Unable to load corridor areas.",
       {
         headers: {
           "Cache-Control": "no-store",

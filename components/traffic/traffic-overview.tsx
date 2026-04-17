@@ -32,6 +32,18 @@ function getFreshnessTone(status: LatestTrafficPayload["freshness"]["status"]) {
   return "slate" as const;
 }
 
+function formatFreshnessText(status: LatestTrafficPayload["freshness"]["status"]) {
+  if (status === "fresh") {
+    return "up to date";
+  }
+
+  if (status === "stale") {
+    return "needs refresh";
+  }
+
+  return "waiting for data";
+}
+
 export function TrafficOverview() {
   const [state, setState] = useState<DashboardState | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -68,11 +80,11 @@ export function TrafficOverview() {
   }, [loadDashboard]);
 
   if (!state && !error) {
-    return <LoadingPanel title="Loading corridor state" message="Reading latest stored observations from the backend." />;
+    return <LoadingPanel title="Loading corridor" message="Checking the latest traffic readings." />;
   }
 
   if (!state) {
-    return <LoadingPanel title="Traffic data unavailable" message={error ?? "The dashboard could not load."} />;
+    return <LoadingPanel title="Traffic data unavailable" message={error ?? "The page could not load."} />;
   }
 
   const { latest, history } = state;
@@ -84,15 +96,14 @@ export function TrafficOverview() {
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="rounded-[2rem] border border-black/10 bg-[#16201d] p-5 text-white shadow-xl sm:rounded-[2.5rem] sm:p-8">
           <StatusPill tone={getFreshnessTone(latest.freshness.status)}>
-            {latest.freshness.status}
+            {formatFreshnessText(latest.freshness.status)}
           </StatusPill>
           <h2 className="mt-6 max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">
-            Live intelligence for the Victoria to Raml corridor.
+            Current traffic from Victoria to Raml.
           </h2>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-stone-200">
-            The interface reads only from the project backend, using stored TomTom
-            observations in SQLite to explain current conditions, freshness, and
-            short-term operating risk.
+            See where traffic is moving well, where it is slowing down, and
+            when the corridor was last updated.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
@@ -121,13 +132,13 @@ export function TrafficOverview() {
           <MetricCard
             label="Average speed"
             value={formatSpeed(latest.summary.averageSpeed)}
-            detail="Mean of the latest observed speeds across active sample points."
+            detail="Average of the latest speeds across the monitored areas."
             tone="green"
           />
           <MetricCard
-            label="Speed vs free-flow"
+            label="Clear-road comparison"
             value={formatPercent(latest.summary.averageSpeedRatio)}
-            detail="Lower ratios indicate heavier congestion relative to the segment baseline."
+            detail="100% means traffic is close to its usual clear-road speed."
             tone={
               latest.summary.averageSpeedRatio === null
                 ? "default"
@@ -141,7 +152,7 @@ export function TrafficOverview() {
           <MetricCard
             label="Latest update"
             value={formatDateTime(latest.freshness.latestTimestampUtc)}
-            detail={`${observedSegments} of ${totalSegments} monitored points have stored observations.`}
+            detail={`${observedSegments} of ${totalSegments} monitored areas have recent readings.`}
           />
         </div>
       </section>
@@ -150,26 +161,26 @@ export function TrafficOverview() {
         <CongestionStack counts={latest.summary.congestionCounts} total={observedSegments} />
         <div className="rounded-[2rem] border border-black/10 bg-white/80 p-5 shadow-sm">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="text-xl font-black text-slate-950">24-hour backend coverage</h3>
+            <h3 className="text-xl font-black text-slate-950">Last 24 hours</h3>
             <StatusPill tone={history.summary.observationCount > 0 ? "green" : "slate"}>
-              {history.summary.observationCount} observations
+              {history.summary.observationCount} readings
             </StatusPill>
           </div>
           <div className="mt-5 grid gap-4 sm:grid-cols-3">
             <MetricCard
               label="Historical avg speed"
               value={formatSpeed(history.summary.averageSpeed)}
-              detail="Computed from stored observations in the selected 24-hour range."
+              detail="Average speed across the last 24 hours."
             />
             <MetricCard
-              label="Historical ratio"
+              label="Clear-road comparison"
               value={formatPercent(history.summary.averageSpeedRatio)}
-              detail="Observed speed relative to free-flow speed."
+              detail="How close traffic was to usual clear-road speed."
             />
             <MetricCard
-              label="Latest history point"
+              label="Latest reading"
               value={formatDateTime(history.summary.latestTimestampUtc)}
-              detail="Most recent observation included in the history response."
+              detail="Most recent reading in the 24-hour view."
             />
           </div>
         </div>

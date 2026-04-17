@@ -8,8 +8,8 @@ const navigation = [
   { href: "/", label: "Overview" },
   { href: "/live", label: "Live corridor" },
   { href: "/history", label: "History" },
-  { href: "/predictions", label: "Predictions" },
-  { href: "/insights", label: "Insights" },
+  { href: "/predictions", label: "Next 15 min" },
+  { href: "/insights", label: "Guidance" },
 ];
 
 export function PageShell({ children }: PageShellProps) {

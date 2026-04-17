@@ -14,7 +14,7 @@ export async function GET() {
       },
     });
   } catch {
-    return apiError(500, "LATEST_TRAFFIC_READ_FAILED", "Unable to load latest traffic state.", {
+    return apiError(500, "LATEST_TRAFFIC_READ_FAILED", "Unable to load latest traffic conditions.", {
       headers: {
         "Cache-Control": "no-store",
       },

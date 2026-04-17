@@ -43,7 +43,6 @@ function SegmentRow({ segment }: { segment: TrafficSegmentPayload }) {
           </span>
           <div>
             <p className="font-black text-slate-950">{segment.roadName}</p>
-            <p className="text-xs text-slate-500">{segment.segmentId}</p>
           </div>
         </div>
       </td>
@@ -76,7 +75,6 @@ function SegmentCard({ segment }: { segment: TrafficSegmentPayload }) {
           </span>
           <div>
             <h4 className="font-black leading-5 text-slate-950">{segment.roadName}</h4>
-            <p className="mt-1 text-xs text-slate-500">{segment.segmentId}</p>
           </div>
         </div>
         <StatusPill tone={tone}>{label}</StatusPill>
@@ -92,7 +90,7 @@ function SegmentCard({ segment }: { segment: TrafficSegmentPayload }) {
         </div>
         <div className="rounded-2xl bg-stone-50 p-3">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-            Ratio
+            Clear-road %
           </p>
           <p className="mt-1 text-sm font-black text-slate-950">
             {formatPercent(segment.observation?.speedRatio)}
@@ -119,7 +117,7 @@ export function LiveCorridor() {
         setError(null);
       });
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Unable to load live state.");
+      setError(loadError instanceof Error ? loadError.message : "Unable to load current traffic.");
     }
   }, []);
 
@@ -138,7 +136,7 @@ export function LiveCorridor() {
   }, [loadLatest]);
 
   if (!latest && !error) {
-    return <LoadingPanel title="Loading live map" message="Reading the latest corridor state from SQLite through the backend." />;
+    return <LoadingPanel title="Loading live map" message="Checking the latest traffic readings." />;
   }
 
   if (!latest) {
@@ -154,10 +152,10 @@ export function LiveCorridor() {
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.24em] text-teal-900">
-                Live corridor map
+                Live corridor
               </p>
               <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
-                Victoria to Raml operating picture
+                Current traffic from Victoria to Raml
               </h2>
             </div>
             <button
@@ -166,27 +164,33 @@ export function LiveCorridor() {
               disabled={isPending}
               className="w-full rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-black text-slate-900 shadow-sm transition hover:bg-slate-950 hover:text-white disabled:opacity-60 sm:w-fit"
             >
-              {isPending ? "Refreshing" : "Refresh live state"}
+              {isPending ? "Refreshing" : "Refresh"}
             </button>
           </div>
           <CorridorMap segments={latest.segments} />
         </div>
         <aside className="grid gap-4">
           <MetricCard
-            label="Freshness"
-            value={latest.freshness.status}
-            detail={`Latest sample: ${formatDateTime(latest.freshness.latestTimestampUtc)}`}
+            label="Update status"
+            value={
+              latest.freshness.status === "fresh"
+                ? "up to date"
+                : latest.freshness.status === "stale"
+                  ? "needs refresh"
+                  : "waiting"
+            }
+            detail={`Latest reading: ${formatDateTime(latest.freshness.latestTimestampUtc)}`}
             tone={latest.freshness.status === "fresh" ? "green" : "amber"}
           />
           <MetricCard
             label="Coverage"
             value={`${latest.freshness.observedSegments}/${latest.corridor.samplePointCount}`}
-            detail="Observed monitored points in the latest stored state."
+            detail="Monitored areas with recent readings."
           />
           <MetricCard
-            label="Corridor ratio"
+            label="Clear-road comparison"
             value={formatPercent(latest.summary.averageSpeedRatio)}
-            detail="Average current speed relative to free-flow speed."
+            detail="100% means traffic is close to usual clear-road speed."
             tone={
               latest.summary.averageSpeedRatio === null
                 ? "default"
@@ -207,9 +211,9 @@ export function LiveCorridor() {
         />
         <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-white/85 shadow-sm">
           <div className="border-b border-black/10 p-5">
-            <h3 className="text-xl font-black text-slate-950">Segment detail</h3>
+            <h3 className="text-xl font-black text-slate-950">Area details</h3>
             <p className="mt-1 text-sm text-slate-600">
-              Latest observation per active sample point, ordered by availability and corridor sequence.
+              Latest reading for each monitored area, ordered from Victoria to Raml.
             </p>
           </div>
           <div className="grid gap-3 p-4 md:hidden">
@@ -221,10 +225,10 @@ export function LiveCorridor() {
             <table className="w-full min-w-[760px] border-collapse text-left">
               <thead>
                 <tr className="bg-stone-100 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-                  <th className="py-3 pr-4 pl-5">Segment</th>
-                  <th className="px-4 py-3">Class</th>
+                  <th className="py-3 pr-4 pl-5">Area</th>
+                  <th className="px-4 py-3">Congestion</th>
                   <th className="px-4 py-3">Speed</th>
-                  <th className="px-4 py-3">Ratio</th>
+                  <th className="px-4 py-3">Clear-road %</th>
                   <th className="py-3 pr-5 pl-4">Updated</th>
                 </tr>
               </thead>

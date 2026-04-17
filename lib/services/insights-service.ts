@@ -6,7 +6,7 @@ import {
 
 function formatPercent(value: number | null): string {
   if (typeof value !== "number" || !Number.isFinite(value)) {
-    return "no confidence data";
+    return "not enough data";
   }
 
   return `${Math.round(value * 100)}%`;
@@ -21,20 +21,20 @@ function getDataQuality(params: {
   if (!params.modelVersion || params.predictedSegments === 0) {
     return {
       status: "missing" as const,
-      message: "No persisted predictions are available yet. Generate predictions after training a model.",
+      message: "Next-15-minute congestion results are not ready yet.",
     };
   }
 
   if (params.warnings.length > 0 || params.predictedSegments < params.totalSegments) {
     return {
       status: "limited" as const,
-      message: "Predictions are available, but the current model should be treated as preliminary.",
+      message: "The app has next-15-minute results, but they will become stronger as more days are collected.",
     };
   }
 
   return {
     status: "ready" as const,
-    message: "Predictions are available for all monitored sample points.",
+    message: "Next-15-minute results are available for all monitored areas.",
   };
 }
 
@@ -74,26 +74,26 @@ export async function getInsightsPayload() {
 
     insights.push({
       id: "high-risk-segments",
-      title: "Heavy congestion risk appears in the forecast",
+      title: "Heavy congestion may appear soon",
       severity: "warning",
-      body: `${highPredictions.length} monitored point${highPredictions.length === 1 ? "" : "s"} are forecast as heavy congestion in the next horizon.`,
-      evidence: `Highest-risk points include ${names}.`,
+      body: `${highPredictions.length} monitored area${highPredictions.length === 1 ? "" : "s"} may reach heavy congestion in the next 15 minutes.`,
+      evidence: `Check ${names} first.`,
     });
   } else if (mediumPredictions.length > 0) {
     insights.push({
       id: "medium-risk-segments",
-      title: "Moderate congestion is the main forecast risk",
+      title: "Moderate congestion is the main thing to watch",
       severity: "watch",
-      body: `${mediumPredictions.length} monitored point${mediumPredictions.length === 1 ? "" : "s"} are forecast as moderate congestion.`,
-      evidence: `Current model confidence averages ${formatPercent(latest.summary.averageConfidence)}.`,
+      body: `${mediumPredictions.length} monitored area${mediumPredictions.length === 1 ? "" : "s"} may be moderately congested in the next 15 minutes.`,
+      evidence: `The app is about ${formatPercent(latest.summary.averageConfidence)} sure overall.`,
     });
   } else {
     insights.push({
       id: "low-risk-corridor",
-      title: "Forecast is currently low-risk",
+      title: "No major congestion is expected soon",
       severity: "info",
-      body: "The latest prediction set does not contain medium or heavy congestion classes.",
-      evidence: `${latest.freshness.predictedSegments} of ${totalSegments} monitored points have persisted predictions.`,
+      body: "The next-15-minute results do not show medium or heavy congestion right now.",
+      evidence: `${latest.freshness.predictedSegments} of ${totalSegments} monitored areas have next-15-minute results.`,
     });
   }
 
@@ -107,42 +107,42 @@ export async function getInsightsPayload() {
       id: "worsening-trend",
       title:
         worseningSegments.length === 1
-          ? "Congestion is forecast to increase at one point"
-          : "Congestion is forecast to increase at several points",
+          ? "Congestion may get worse in one area"
+          : "Congestion may get worse in several areas",
       severity: "watch",
-      body: `${worseningSegments.length} monitored point${worseningSegments.length === 1 ? " is" : "s are"} forecast to move into a higher congestion class.`,
-      evidence: `Watch ${names}. Worsening means the predicted congestion class is higher than the latest observed class.`,
+      body: `${worseningSegments.length} monitored area${worseningSegments.length === 1 ? " is" : "s are"} expected to move to heavier congestion in the next 15 minutes.`,
+      evidence: `Watch ${names}. Worsening means the expected level is heavier than the current level.`,
     });
   } else if (improvingSegments.length > 0) {
     insights.push({
       id: "improving-trend",
       title:
         improvingSegments.length === 1
-          ? "Congestion is forecast to decrease at one point"
-          : "Congestion is forecast to decrease at some points",
+          ? "Congestion may ease in one area"
+          : "Congestion may ease in some areas",
       severity: "info",
-      body: `${improvingSegments.length} monitored point${improvingSegments.length === 1 ? " is" : "s are"} forecast to move into a lower congestion class.`,
-      evidence: "Improving means the predicted congestion class is lower than the latest observed class.",
+      body: `${improvingSegments.length} monitored area${improvingSegments.length === 1 ? " is" : "s are"} expected to move to lighter congestion in the next 15 minutes.`,
+      evidence: "Improving means the expected level is lighter than the current level.",
     });
   }
 
   if (lowConfidenceSegments.length > 0) {
     insights.push({
       id: "low-confidence",
-      title: "Some predictions need caution",
+      title: "Some areas need extra caution",
       severity: "watch",
-      body: `${lowConfidenceSegments.length} prediction${lowConfidenceSegments.length === 1 ? "" : "s"} have confidence below 55%.`,
-      evidence: "Low-confidence predictions should be shown as guidance, not certainty.",
+      body: `The app is less sure about ${lowConfidenceSegments.length} area${lowConfidenceSegments.length === 1 ? "" : "s"}.`,
+      evidence: "Use these results as guidance, not certainty.",
     });
   }
 
   if (latest.model.warnings.length > 0) {
     insights.push({
       id: "model-limitations",
-      title: "Model is still in early-data mode",
+      title: "The app is still learning this corridor",
       severity: "watch",
-      body: "The trained model reports data limitations that should be visible in the product.",
-      evidence: latest.model.warnings[0],
+      body: "The first days of results are useful, but reliability improves after more traffic days are collected.",
+      evidence: "Keep checking the next-15-minute page, especially during rush hours.",
     });
   }
 

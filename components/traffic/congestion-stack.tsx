@@ -18,7 +18,7 @@ export function CongestionStack({ counts, total }: CongestionStackProps) {
     <div className="rounded-[2rem] border border-black/10 bg-white/80 p-5 shadow-sm">
       <div className="flex items-center justify-between gap-4">
         <h3 className="text-xl font-black text-slate-950">Congestion mix</h3>
-        <StatusPill tone={total > 0 ? "green" : "slate"}>{total} observed</StatusPill>
+        <StatusPill tone={total > 0 ? "green" : "slate"}>{total} readings</StatusPill>
       </div>
       <div className="mt-5 h-4 overflow-hidden rounded-full bg-slate-200">
         <div className="flex h-full">

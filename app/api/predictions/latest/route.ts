@@ -17,7 +17,7 @@ export async function GET() {
     return apiError(
       500,
       "LATEST_PREDICTIONS_READ_FAILED",
-      "Unable to load latest predictions.",
+      "Unable to load next-15-minute results.",
       {
         headers: {
           "Cache-Control": "no-store",

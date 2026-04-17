@@ -88,7 +88,7 @@ export function CorridorMap({ segments }: CorridorMapProps) {
             }),
           })
           .bindPopup(
-            `<strong>${segment.roadName}</strong><br/>Segment ${segment.order}<br/>Status: ${
+            `<strong>${segment.roadName}</strong><br/>Area ${segment.order}<br/>Congestion: ${
               formatCongestionLabel(label)
             }`,
           );

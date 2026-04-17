@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     }
 
     if (error instanceof Error && error.message === "UNKNOWN_SEGMENT") {
-      return apiError(404, "UNKNOWN_SEGMENT", "The requested segment is not in the corridor.", {
+      return apiError(404, "UNKNOWN_SEGMENT", "The requested area is not in the corridor.", {
         headers: {
           "Cache-Control": "no-store",
         },
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
     return apiError(
       500,
       "TRAFFIC_HISTORY_READ_FAILED",
-      "Unable to load historical traffic observations.",
+      "Unable to load traffic history.",
       {
         headers: {
           "Cache-Control": "no-store",

@@ -21,12 +21,26 @@ const qualityTone = {
   missing: "red",
 } as const;
 
+const severityLabel = {
+  info: "clear",
+  watch: "watch",
+  warning: "attention",
+} as const;
+
+const qualityLabel = {
+  ready: "ready",
+  limited: "still learning",
+  missing: "not ready",
+} as const;
+
 function InsightCard({ insight }: { insight: InsightPayload }) {
   return (
     <article className="rounded-[2rem] border border-black/10 bg-white/85 p-5 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <h3 className="text-xl font-black text-slate-950">{insight.title}</h3>
-        <StatusPill tone={severityTone[insight.severity]}>{insight.severity}</StatusPill>
+        <StatusPill tone={severityTone[insight.severity]}>
+          {severityLabel[insight.severity]}
+        </StatusPill>
       </div>
       <p className="mt-4 text-base leading-7 text-slate-700">{insight.body}</p>
       <p className="mt-4 rounded-2xl bg-stone-100 p-4 text-sm font-semibold leading-6 text-slate-700">
@@ -50,7 +64,7 @@ export function InsightsDashboard() {
         setError(null);
       });
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Unable to load insights.");
+      setError(loadError instanceof Error ? loadError.message : "Unable to load guidance.");
     }
   }, []);
 
@@ -71,8 +85,8 @@ export function InsightsDashboard() {
   if (!state && !error) {
     return (
       <LoadingPanel
-        title="Loading insights"
-        message="Reading generated corridor guidance from the backend."
+        title="Loading guidance"
+        message="Checking what changed across the corridor."
       />
     );
   }
@@ -80,8 +94,8 @@ export function InsightsDashboard() {
   if (!state) {
     return (
       <LoadingPanel
-        title="Insights unavailable"
-        message={error ?? "The insights page could not load."}
+        title="Guidance unavailable"
+        message={error ?? "The guidance page could not load."}
       />
     );
   }
@@ -95,15 +109,14 @@ export function InsightsDashboard() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <StatusPill tone={qualityTone[state.dataQuality.status]}>
-              {state.dataQuality.status}
+              {qualityLabel[state.dataQuality.status]}
             </StatusPill>
             <h2 className="mt-5 max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">
-              Explainable corridor insights.
+              What to watch on the corridor.
             </h2>
             <p className="mt-5 max-w-3xl text-lg leading-8 text-stone-200">
-              These insights summarize stored observations, persisted predictions,
-              model warnings, and near-term trend direction. They are generated
-              from backend data only.
+              Plain-language guidance for the next 15 minutes: where congestion
+              may appear, where it may ease, and which areas need extra caution.
             </p>
           </div>
           <button
@@ -119,49 +132,49 @@ export function InsightsDashboard() {
 
       <section className="grid gap-4 md:grid-cols-3">
         <MetricCard
-          label="Insight count"
+          label="Guidance items"
           value={String(state.insights.length)}
-          detail="Generated from latest backend prediction state."
+          detail="Plain notes based on the latest corridor results."
         />
         <MetricCard
-          label="Warnings"
+          label="Need attention"
           value={String(warningCount)}
-          detail={`${watchCount} additional watch-level items.`}
+          detail={`${watchCount} more item${watchCount === 1 ? "" : "s"} to watch.`}
           tone={warningCount > 0 ? "red" : watchCount > 0 ? "amber" : "green"}
         />
         <MetricCard
-          label="Generated"
+          label="Updated"
           value={formatDateTime(state.generatedAtUtc)}
-          detail={state.modelVersion ?? "No model version available."}
+          detail="Time this guidance was last refreshed."
         />
       </section>
 
       <section className="rounded-[2rem] border border-black/10 bg-white/80 p-5 shadow-sm">
-        <StatusPill tone={qualityTone[state.dataQuality.status]}>data quality</StatusPill>
+        <StatusPill tone={qualityTone[state.dataQuality.status]}>coverage</StatusPill>
         <p className="mt-4 text-base leading-7 text-slate-700">
           {state.dataQuality.message}
         </p>
       </section>
 
       <section className="rounded-[2rem] border border-black/10 bg-white/80 p-5 shadow-sm">
-        <h3 className="text-xl font-black text-slate-950">How to read trend language</h3>
+        <h3 className="text-xl font-black text-slate-950">How to read traffic changes</h3>
         <div className="mt-5 grid gap-3 md:grid-cols-3">
           <div className="rounded-3xl bg-emerald-50 p-4">
             <StatusPill tone="green">improving</StatusPill>
             <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
-              Congestion is forecast to decrease into a lower class.
+              Traffic is expected to move to a lighter congestion level.
             </p>
           </div>
           <div className="rounded-3xl bg-stone-100 p-4">
             <StatusPill tone="slate">stable</StatusPill>
             <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
-              Congestion is forecast to remain in the same class.
+              Traffic is expected to stay at the same congestion level.
             </p>
           </div>
           <div className="rounded-3xl bg-red-50 p-4">
             <StatusPill tone="red">worsening</StatusPill>
             <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
-              Congestion is forecast to increase into a higher class.
+              Traffic is expected to move to a heavier congestion level.
             </p>
           </div>
         </div>

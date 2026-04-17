@@ -14,7 +14,7 @@ export async function GET() {
       },
     });
   } catch {
-    return apiError(500, "INSIGHTS_READ_FAILED", "Unable to load insights.", {
+    return apiError(500, "INSIGHTS_READ_FAILED", "Unable to load guidance.", {
       headers: {
         "Cache-Control": "no-store",
       },

@@ -17,7 +17,7 @@ export async function GET() {
     return apiError(
       500,
       "PREDICTION_TREND_READ_FAILED",
-      "Unable to load prediction trend.",
+      "Unable to load upcoming traffic changes.",
       {
         headers: {
           "Cache-Control": "no-store",

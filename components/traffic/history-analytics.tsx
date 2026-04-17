@@ -98,9 +98,9 @@ function TrendBars({ buckets }: { buckets: CorridorBucket[] }) {
   if (buckets.length === 0) {
     return (
       <div className="rounded-[2rem] border border-dashed border-black/20 bg-white/70 p-8 text-center">
-        <p className="font-black text-slate-950">No historical observations yet</p>
+        <p className="font-black text-slate-950">No history yet</p>
         <p className="mt-2 text-sm text-slate-600">
-          The VPS is collecting data. This chart fills once the selected window has stored observations.
+          The system is collecting traffic readings. This chart fills once enough readings are available.
         </p>
       </div>
     );
@@ -112,10 +112,10 @@ function TrendBars({ buckets }: { buckets: CorridorBucket[] }) {
         <div>
           <h3 className="text-xl font-black text-slate-950">Corridor speed trend</h3>
           <p className="mt-1 text-sm text-slate-600">
-            Aggregated from stored observations across active monitored points.
+            Each bar shows average speed for the selected time period.
           </p>
         </div>
-        <StatusPill tone="slate">{buckets.length} buckets</StatusPill>
+        <StatusPill tone="slate">{buckets.length} periods</StatusPill>
       </div>
       <div className="mt-6 flex h-72 items-end gap-2 overflow-x-auto rounded-3xl bg-stone-100 p-4">
         {buckets.map((bucket) => {
@@ -163,9 +163,9 @@ function BucketTable({ buckets }: { buckets: CorridorBucket[] }) {
   return (
     <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-white/85 shadow-sm">
       <div className="border-b border-black/10 p-5">
-        <h3 className="text-xl font-black text-slate-950">Historical buckets</h3>
+        <h3 className="text-xl font-black text-slate-950">Time period details</h3>
         <p className="mt-1 text-sm text-slate-600">
-          Corridor-level view collapsed from per-segment backend aggregates.
+          Average corridor conditions for each time period.
         </p>
       </div>
       <div className="grid gap-3 p-4 md:hidden">
@@ -174,7 +174,7 @@ function BucketTable({ buckets }: { buckets: CorridorBucket[] }) {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-                  Bucket
+                  Period
                 </p>
                 <h4 className="mt-1 font-black text-slate-950">
                   {formatDateTime(bucket.bucketStartUtc)}
@@ -195,7 +195,7 @@ function BucketTable({ buckets }: { buckets: CorridorBucket[] }) {
               </div>
               <div className="rounded-2xl bg-stone-50 p-3">
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                  Ratio
+                  Clear-road %
                 </p>
                 <p className="mt-1 text-xs font-black text-slate-950">
                   {formatPercent(bucket.averageSpeedRatio)}
@@ -203,7 +203,7 @@ function BucketTable({ buckets }: { buckets: CorridorBucket[] }) {
               </div>
               <div className="rounded-2xl bg-stone-50 p-3">
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                  Obs.
+                  Readings
                 </p>
                 <p className="mt-1 text-xs font-black text-slate-950">
                   {bucket.observationCount}
@@ -217,11 +217,11 @@ function BucketTable({ buckets }: { buckets: CorridorBucket[] }) {
         <table className="w-full min-w-[720px] border-collapse text-left">
           <thead>
             <tr className="bg-stone-100 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-              <th className="py-3 pr-4 pl-5">Bucket</th>
-              <th className="px-4 py-3">Dominant class</th>
+              <th className="py-3 pr-4 pl-5">Period</th>
+              <th className="px-4 py-3">Most common level</th>
               <th className="px-4 py-3">Avg speed</th>
-              <th className="px-4 py-3">Speed ratio</th>
-              <th className="py-3 pr-5 pl-4">Observations</th>
+              <th className="px-4 py-3">Clear-road %</th>
+              <th className="py-3 pr-5 pl-4">Readings</th>
             </tr>
           </thead>
           <tbody>
@@ -286,7 +286,7 @@ export function HistoryAnalytics() {
   const buckets = useMemo(() => (history ? buildCorridorBuckets(history) : []), [history]);
 
   if (!history && !error) {
-    return <LoadingPanel title="Loading history" message="Preparing stored traffic history from the backend." />;
+    return <LoadingPanel title="Loading history" message="Preparing traffic history." />;
   }
 
   if (!history) {
@@ -299,14 +299,13 @@ export function HistoryAnalytics() {
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.24em] text-teal-900">
-              Historical analytics
+              Traffic history
             </p>
               <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
-                Stored corridor behavior over time
+                How traffic changed over time
               </h2>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-              These views are computed from SQLite observations, not provider calls. They are designed
-              for inspection now and for feature engineering later.
+              Review speed and congestion patterns for the selected time window.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -352,9 +351,9 @@ export function HistoryAnalytics() {
 
       <section className="grid gap-4 lg:grid-cols-4">
         <MetricCard
-          label="Observations"
+          label="Readings"
           value={String(history.summary.observationCount)}
-          detail={`${history.summary.segmentCount} monitored points in scope.`}
+          detail={`${history.summary.segmentCount} monitored areas in scope.`}
         />
         <MetricCard
           label="Average speed"
@@ -363,14 +362,14 @@ export function HistoryAnalytics() {
           tone="green"
         />
         <MetricCard
-          label="Free-flow ratio"
+          label="Clear-road comparison"
           value={formatPercent(history.summary.averageSpeedRatio)}
-          detail="Window-level speed relative to free-flow."
+          detail="How close traffic was to usual clear-road speed."
         />
         <MetricCard
-          label="Latest sample"
+          label="Latest reading"
           value={formatDateTime(history.summary.latestTimestampUtc)}
-          detail="Most recent record included in this query."
+          detail="Most recent reading in this view."
         />
       </section>
 

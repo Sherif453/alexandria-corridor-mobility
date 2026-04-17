@@ -24,7 +24,7 @@ export function formatPercent(value: number | null | undefined): string {
 
 export function formatDateTime(value: string | null | undefined): string {
   if (!value) {
-    return "No timestamp";
+    return "No time available";
   }
 
   return new Intl.DateTimeFormat("en-EG", {

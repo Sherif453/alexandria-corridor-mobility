@@ -618,17 +618,20 @@ The following items remain open:
   trained. It loads the latest random forest artifact, scores the latest feature
   snapshot per segment, writes one next-horizon prediction row per segment, and
   replaces existing rows for the same model version and prediction timestamp.
-- Prediction APIs now expose latest persisted forecasts and deterministic trend
-  summaries through internal Next.js API routes. The prediction page reads only
-  those backend routes and surfaces model version, confidence, forecast class,
-  current observed class, and segment-level trend explanations.
+- Prediction APIs now expose latest persisted 15-minute congestion predictions
+  and deterministic trend summaries through internal Next.js API routes. The
+  prediction page presents this as plain user guidance: current level, next
+  15-minute expected level, how sure the app is, and whether each area is
+  improving, stable, worsening, or uncertain.
 - Prediction trend language is defined as congestion-class movement:
   improving means the forecast class is lower than the latest observed class,
   stable means the forecast class is unchanged, and worsening means the forecast
   class is higher. Recent speed movement is supporting context only.
-- Insights are deterministic backend summaries of stored observations,
-  persisted predictions, model warnings, confidence, and trend state. They do
-  not add a new product scope; they make the existing ML outputs explainable.
+- Insights are deterministic summaries of current traffic readings, persisted
+  predictions, reliability cautions, and trend state. User-facing pages avoid
+  implementation terminology such as model artifacts, feature snapshots,
+  backend storage, and provider/database names; those details stay in code and
+  documentation, not the live app copy.
 
 ## Risks and mitigations
 

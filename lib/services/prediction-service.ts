@@ -150,7 +150,7 @@ function getTrend(params: {
   if (!params.observation || !params.prediction || !params.observation.congestionLabel) {
     return {
       trend: "uncertain",
-      reason: "Missing current observed state or prediction.",
+      reason: "There is not enough recent information for this area.",
     };
   }
 
@@ -160,21 +160,21 @@ function getTrend(params: {
   if (currentScore === undefined || predictedScore === undefined) {
     return {
       trend: "uncertain",
-      reason: "Current or predicted class is outside the supported labels.",
+      reason: "This area could not be placed into a clear congestion level.",
     };
   }
 
   if (predictedScore > currentScore) {
     return {
       trend: "worsening",
-      reason: `Congestion is forecast to increase from ${params.observation.congestionLabel} to ${params.prediction.predictedLabel}.`,
+      reason: `Congestion is expected to increase from ${params.observation.congestionLabel} to ${params.prediction.predictedLabel}.`,
     };
   }
 
   if (predictedScore < currentScore) {
     return {
       trend: "improving",
-      reason: `Congestion is forecast to decrease from ${params.observation.congestionLabel} to ${params.prediction.predictedLabel}.`,
+      reason: `Congestion is expected to decrease from ${params.observation.congestionLabel} to ${params.prediction.predictedLabel}.`,
     };
   }
 
@@ -182,21 +182,21 @@ function getTrend(params: {
     if (params.feature.speedChangeRate < -0.15) {
       return {
         trend: "stable",
-        reason: `Congestion is forecast to remain ${params.prediction.predictedLabel}. Recent speed is falling, so this point should be watched.`,
+        reason: `Congestion is expected to remain ${params.prediction.predictedLabel}. Recent speed is falling, so this area should be watched.`,
       };
     }
 
     if (params.feature.speedChangeRate > 0.15) {
       return {
         trend: "stable",
-        reason: `Congestion is forecast to remain ${params.prediction.predictedLabel}. Recent speed is rising, but the congestion class is unchanged.`,
+        reason: `Congestion is expected to remain ${params.prediction.predictedLabel}. Recent speed is rising, but the level is unchanged.`,
       };
     }
   }
 
   return {
     trend: "stable",
-    reason: `Congestion is forecast to remain ${params.prediction.predictedLabel}.`,
+    reason: `Congestion is expected to remain ${params.prediction.predictedLabel}.`,
   };
 }
 

@@ -4,10 +4,10 @@ type StatusPillProps = {
 };
 
 const toneClasses = {
-  green: "border-emerald-700/20 bg-emerald-700/10 text-emerald-950",
-  amber: "border-amber-700/20 bg-amber-600/15 text-amber-950",
-  red: "border-red-800/20 bg-red-700/10 text-red-950",
-  slate: "border-slate-700/20 bg-slate-700/10 text-slate-950",
+  green: "border-emerald-700/20 bg-emerald-100 text-emerald-950",
+  amber: "border-amber-700/20 bg-amber-100 text-amber-950",
+  red: "border-red-800/20 bg-red-100 text-red-950",
+  slate: "border-slate-700/20 bg-slate-100 text-slate-950",
 };
 
 export function StatusPill({ children, tone = "slate" }: StatusPillProps) {

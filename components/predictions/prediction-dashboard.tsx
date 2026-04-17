@@ -61,13 +61,29 @@ function TrendDefinitionCard({
   );
 }
 
+function formatFreshnessText(status: LatestPredictionsPayload["freshness"]["status"]) {
+  if (status === "fresh") {
+    return "up to date";
+  }
+
+  if (status === "stale") {
+    return "needs refresh";
+  }
+
+  return "not ready";
+}
+
+function formatAreaCount(count: number) {
+  return `${count} area${count === 1 ? "" : "s"}`;
+}
+
 function TrendCard({ segment }: { segment: PredictionTrendSegmentPayload }) {
   return (
     <article className="rounded-3xl border border-black/10 bg-white/85 p-4 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
-            Point {segment.order}
+            Area {segment.order}
           </p>
           <h3 className="mt-1 text-lg font-black text-slate-950">{segment.roadName}</h3>
         </div>
@@ -84,7 +100,7 @@ function TrendCard({ segment }: { segment: PredictionTrendSegmentPayload }) {
         </div>
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-            Forecast
+            Next 15 minutes
           </p>
           <p className="mt-1 font-black text-slate-950">
             {formatCongestionLabel(segment.predictedLabel)}
@@ -92,7 +108,7 @@ function TrendCard({ segment }: { segment: PredictionTrendSegmentPayload }) {
         </div>
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-            Confidence
+            How sure
           </p>
           <p className="mt-1 font-black text-slate-950">{formatPercent(segment.confidence)}</p>
         </div>
@@ -120,7 +136,9 @@ export function PredictionDashboard() {
       });
     } catch (loadError) {
       setError(
-        loadError instanceof Error ? loadError.message : "Unable to load predictions.",
+        loadError instanceof Error
+          ? loadError.message
+          : "Unable to load next-15-minute results.",
       );
     }
   }, []);
@@ -142,8 +160,8 @@ export function PredictionDashboard() {
   if (!state && !error) {
     return (
       <LoadingPanel
-        title="Loading predictions"
-        message="Reading persisted model forecasts from the backend."
+        title="Loading next 15 minutes"
+        message="Checking the latest expected congestion levels."
       />
     );
   }
@@ -151,8 +169,8 @@ export function PredictionDashboard() {
   if (!state) {
     return (
       <LoadingPanel
-        title="Predictions unavailable"
-        message={error ?? "The prediction page could not load."}
+        title="Next 15 minutes unavailable"
+        message={error ?? "The page could not load the latest expected congestion levels."}
       />
     );
   }
@@ -192,14 +210,15 @@ export function PredictionDashboard() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <StatusPill tone={getFreshnessTone(latest.freshness.status)}>
-              {latest.freshness.status}
+              {formatFreshnessText(latest.freshness.status)}
             </StatusPill>
             <h2 className="mt-5 max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">
-              Next-horizon congestion forecast.
+              Congestion expected in the next 15 minutes.
             </h2>
             <p className="mt-5 max-w-3xl text-lg leading-8 text-stone-200">
-              Forecasts are generated from stored feature snapshots and persisted
-              model artifacts. Confidence is model confidence, not a guarantee.
+              This page shows each monitored area from Victoria to Raml, compares
+              the current congestion level with the expected level in the next
+              15-minute window, and highlights where traffic may get worse.
             </p>
           </div>
           <button
@@ -215,37 +234,38 @@ export function PredictionDashboard() {
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          label="Predicted points"
+          label="Areas checked"
           value={`${predictedSegments}/${totalSegments}`}
-          detail="Segments with persisted next-horizon forecasts."
+          detail="Monitored areas with a next-15-minute result."
           tone={predictedSegments === totalSegments ? "green" : "amber"}
         />
         <MetricCard
-          label="Risk forecast"
+          label="Next 15 minutes"
           value={`${highCount} high / ${mediumCount} medium`}
-          detail="Predicted congestion classes for the latest forecast set."
+          detail="Expected congestion levels for the coming 15-minute window."
           tone={highCount > 0 ? "red" : mediumCount > 0 ? "amber" : "green"}
         />
         <MetricCard
-          label="Avg confidence"
+          label="How sure overall"
           value={formatPercent(latest.summary.averageConfidence)}
-          detail={`${latest.summary.lowConfidenceCount} predictions are below 55% confidence.`}
+          detail={`${formatAreaCount(latest.summary.lowConfidenceCount)} need extra caution.`}
         />
         <MetricCard
-          label="Forecast time"
+          label="Last updated"
           value={formatDateTime(latest.freshness.latestPredictionTimestampUtc)}
-          detail={latest.model.version ?? "No model version available."}
+          detail="Time of the latest next-15-minute calculation."
         />
       </section>
 
       {latest.model.warnings.length > 0 ? (
         <section className="rounded-[2rem] border border-amber-700/20 bg-amber-50 p-5 shadow-sm">
-          <StatusPill tone="amber">model caveat</StatusPill>
+          <StatusPill tone="amber">early data notice</StatusPill>
           <h3 className="mt-4 text-xl font-black text-slate-950">
-            Current model is preliminary
+            Results will get stronger as more days are collected
           </h3>
           <p className="mt-2 text-sm leading-6 text-slate-700">
-            {latest.model.warnings[0]}
+            The app is already using real collected traffic data, but the first
+            days of predictions should be treated as guidance rather than certainty.
           </p>
         </section>
       ) : null}
@@ -253,8 +273,8 @@ export function PredictionDashboard() {
       <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <div className="rounded-[2rem] border border-black/10 bg-white/80 p-5 shadow-sm">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="text-xl font-black text-slate-950">Highest-priority points</h3>
-            <StatusPill tone="slate">latest model</StatusPill>
+            <h3 className="text-xl font-black text-slate-950">Areas to check first</h3>
+            <StatusPill tone="slate">next 15 minutes</StatusPill>
           </div>
           <div className="mt-5 grid gap-3">
             {leadingSegments.length > 0 ? (
@@ -266,7 +286,7 @@ export function PredictionDashboard() {
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
-                        Point {segment.order}
+                        Area {segment.order}
                       </p>
                       <p className="mt-1 text-lg font-black text-slate-950">
                         {segment.roadName}
@@ -277,45 +297,47 @@ export function PredictionDashboard() {
                     </StatusPill>
                   </div>
                   <p className="mt-3 text-sm leading-6 text-slate-600">
-                    Confidence {formatPercent(segment.prediction?.confidence)}.
-                    Current observed state is{" "}
+                    Next 15 minutes:{" "}
+                    {formatCongestionLabel(segment.prediction?.predictedLabel)}.
+                    Current level:{" "}
                     {formatCongestionLabel(segment.latestObservation?.congestionLabel)}.
+                    The app is {formatPercent(segment.prediction?.confidence)} sure.
                   </p>
                 </div>
               ))
             ) : (
               <p className="rounded-3xl border border-dashed border-black/15 p-5 text-sm leading-6 text-slate-600">
-                No prediction rows are available yet. Run `npm run predictions:generate`
-                after training a model.
+                Next-15-minute results are not ready yet. Check again after the
+                next system update.
               </p>
             )}
           </div>
         </div>
 
         <div className="rounded-[2rem] border border-black/10 bg-white/80 p-5 shadow-sm">
-          <h3 className="text-xl font-black text-slate-950">Trend summary</h3>
+          <h3 className="text-xl font-black text-slate-950">What is changing soon</h3>
           <div className="mt-5 grid grid-cols-2 gap-3">
             <MetricCard
               label="Improving"
               value={String(trend.summary.improving)}
-              detail="Predicted congestion class is lower than the latest observed class."
+              detail="Expected to move to lighter congestion."
               tone="green"
             />
             <MetricCard
               label="Stable"
               value={String(trend.summary.stable)}
-              detail="Predicted congestion class is the same as the latest observed class."
+              detail="Expected to stay at the current level."
             />
             <MetricCard
               label="Worsening"
               value={String(trend.summary.worsening)}
-              detail="Predicted congestion class is higher than the latest observed class."
+              detail="Expected to move to heavier congestion."
               tone={trend.summary.worsening > 0 ? "red" : "default"}
             />
             <MetricCard
               label="Uncertain"
               value={String(trend.summary.uncertain)}
-              detail="Current observation or prediction is missing."
+              detail="Not enough current information."
               tone={trend.summary.uncertain > 0 ? "amber" : "default"}
             />
           </div>
@@ -324,40 +346,64 @@ export function PredictionDashboard() {
 
       <section className="rounded-[2rem] border border-black/10 bg-white/80 p-5 shadow-sm">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h3 className="text-xl font-black text-slate-950">What trend means</h3>
+          <h3 className="text-xl font-black text-slate-950">How to read this page</h3>
           <p className="text-sm font-semibold text-slate-600">
-            Trend is based on congestion class movement, not speed alone.
+            The app compares now with the next 15 minutes.
           </p>
         </div>
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <TrendDefinitionCard
             label="Improving"
             tone="green"
-            description="Congestion is forecast to decrease, for example Medium to Low or High to Medium."
+            description="Traffic is expected to move to a lighter congestion level."
           />
           <TrendDefinitionCard
             label="Stable"
             tone="slate"
-            description="Congestion is forecast to stay in the same class. Speed may move, but the class is unchanged."
+            description="Traffic is expected to stay at the same congestion level."
           />
           <TrendDefinitionCard
             label="Worsening"
             tone="red"
-            description="Congestion is forecast to increase, for example Low to Medium or Medium to High."
+            description="Traffic is expected to move to a heavier congestion level."
           />
           <TrendDefinitionCard
             label="Uncertain"
             tone="amber"
-            description="The app cannot classify the trend because the current observation or prediction is missing."
+            description="The app does not have enough recent information for this area."
           />
+        </div>
+      </section>
+
+      <section className="rounded-[2rem] border border-black/10 bg-[#fdf8ed] p-5 shadow-sm">
+        <h3 className="text-xl font-black text-slate-950">What the levels mean</h3>
+        <div className="mt-5 grid gap-3 md:grid-cols-3">
+          <div className="rounded-3xl bg-emerald-50 p-4">
+            <StatusPill tone="green">Low</StatusPill>
+            <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
+              Traffic is moving close to its usual clear-road speed.
+            </p>
+          </div>
+          <div className="rounded-3xl bg-amber-50 p-4">
+            <StatusPill tone="amber">Medium</StatusPill>
+            <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
+              Traffic is noticeably slower, so delays are more likely.
+            </p>
+          </div>
+          <div className="rounded-3xl bg-red-50 p-4">
+            <StatusPill tone="red">High</StatusPill>
+            <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
+              Traffic is much slower than usual and should be treated as a problem area.
+            </p>
+          </div>
         </div>
       </section>
 
       <section className="space-y-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h3 className="text-2xl font-black text-slate-950">Segment trend details</h3>
+          <h3 className="text-2xl font-black text-slate-950">All monitored areas</h3>
           <p className="text-sm font-semibold text-slate-600">
-            Current class vs next-horizon prediction
+            Current level compared with the next 15 minutes
           </p>
         </div>
         <div className="grid gap-3 lg:grid-cols-2">
