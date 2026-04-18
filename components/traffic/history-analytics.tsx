@@ -184,7 +184,7 @@ function BucketTable({ buckets }: { buckets: CorridorBucket[] }) {
                 {formatCongestionLabel(bucket.dominantClass)}
               </StatusPill>
             </div>
-            <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="mt-4 grid gap-2 sm:grid-cols-3">
               <div className="rounded-2xl bg-stone-50 p-3">
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
                   Speed
@@ -306,6 +306,8 @@ export function HistoryAnalytics() {
               </h2>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
               Review speed and congestion patterns for the selected time window.
+              New live readings are collected daily from 7:00 AM to midnight
+              Cairo time.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

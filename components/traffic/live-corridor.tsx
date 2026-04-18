@@ -157,6 +157,11 @@ export function LiveCorridor() {
               <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
                 Current traffic from Victoria to Raml
               </h2>
+              <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-slate-600">
+                Live readings update from 7:00 AM to midnight Cairo time. After
+                midnight, this page keeps showing the latest saved corridor
+                reading until collection starts again.
+              </p>
             </div>
             <button
               type="button"

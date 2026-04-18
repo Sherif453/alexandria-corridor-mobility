@@ -14,9 +14,13 @@ const toneClasses = {
 
 export function MetricCard({ label, value, detail, tone = "default" }: MetricCardProps) {
   return (
-    <div className={`rounded-3xl border border-black/10 bg-gradient-to-br p-5 shadow-sm ${toneClasses[tone]}`}>
+    <div
+      className={`min-w-0 rounded-3xl border border-black/10 bg-gradient-to-br p-5 shadow-sm ${toneClasses[tone]}`}
+    >
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-600">{label}</p>
-      <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{value}</p>
+      <p className="mt-3 break-words text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
+        {value}
+      </p>
       {detail ? <p className="mt-2 text-sm leading-6 text-slate-600">{detail}</p> : null}
     </div>
   );

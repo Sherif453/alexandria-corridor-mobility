@@ -139,7 +139,7 @@ export function CorridorMap({
 
   return (
     <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-sm">
-      <div ref={containerRef} className="h-[24rem] w-full sm:h-[32rem]" />
+      <div ref={containerRef} className="h-[21rem] w-full sm:h-[32rem]" />
     </div>
   );
 }

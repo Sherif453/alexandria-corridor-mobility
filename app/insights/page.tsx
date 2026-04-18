@@ -12,7 +12,7 @@ const mainSteps = [
   },
   {
     title: "Check the live corridor",
-    body: "Use the live corridor page to see the monitored locations on the map. Each point follows the fixed Victoria to Sidi Gaber to Raml route.",
+    body: "Use the live corridor page to see the monitored locations on the map. Live readings update daily from 7:00 AM to midnight Cairo time.",
     href: "/live",
     cta: "Open live map",
   },
@@ -79,7 +79,8 @@ export default function GuidancePage() {
           <p className="mt-5 max-w-3xl text-lg leading-8 text-stone-200">
             The app is built to answer one practical question: what is happening
             on the Victoria to Sidi Gaber to Raml corridor, and what should you
-            check before using or planning around it?
+            check before using or planning around it? Real live functionality
+            runs from 7:00 AM to midnight Cairo time.
           </p>
         </section>
 
@@ -96,7 +97,7 @@ export default function GuidancePage() {
               <p className="mt-4 text-base leading-7 text-slate-700">{step.body}</p>
               <Link
                 href={step.href}
-                className="mt-5 inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-teal-900"
+                className="mt-5 inline-flex w-full justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-teal-900 sm:w-fit"
               >
                 {step.cta}
               </Link>

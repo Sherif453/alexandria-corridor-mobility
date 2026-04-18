@@ -39,6 +39,13 @@ export function PageShell({ children }: PageShellProps) {
               ))}
             </nav>
           </div>
+          <div className="mt-4 rounded-2xl border border-amber-700/20 bg-amber-50 px-4 py-3">
+            <p className="text-sm font-bold leading-6 text-amber-950">
+              Live traffic updates and next-15-minute results run daily from
+              7:00 AM to midnight Cairo time. Outside that window, the app shows
+              the latest saved readings and results.
+            </p>
+          </div>
         </header>
         {children}
       </div>

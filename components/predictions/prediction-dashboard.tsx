@@ -244,13 +244,14 @@ export function PredictionDashboard() {
               This page shows each monitored area from Victoria to Raml, compares
               the current congestion level with the expected level in the next
               15-minute window, and highlights where traffic may get worse.
+              These results update from 7:00 AM to midnight Cairo time.
             </p>
           </div>
           <button
             type="button"
             onClick={() => void loadPredictions()}
             disabled={isPending}
-            className="rounded-full border border-white/20 px-5 py-3 text-sm font-black text-white transition hover:bg-white hover:text-slate-950 disabled:opacity-60"
+            className="w-full rounded-full border border-white/20 px-5 py-3 text-sm font-black text-white transition hover:bg-white hover:text-slate-950 disabled:opacity-60 sm:w-fit"
           >
             {isPending ? "Refreshing" : "Refresh"}
           </button>
@@ -278,7 +279,7 @@ export function PredictionDashboard() {
         <MetricCard
           label="Last updated"
           value={formatDateTime(latest.freshness.latestPredictionTimestampUtc)}
-          detail="Time of the latest next-15-minute calculation."
+          detail="Latest calculation from the daily 7:00 AM to midnight live window."
         />
       </section>
 
@@ -295,48 +296,22 @@ export function PredictionDashboard() {
         </section>
       ) : null}
 
-      <section className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-2xl font-black text-slate-950">
-              Map of expected congestion
-            </h3>
-            <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
-              This uses the same corridor map as the live page, but each marker
-              shows the congestion level expected in the next 15 minutes.
-            </p>
-          </div>
-          <CorridorMap
-            segments={predictionMapSegments}
-            congestionBySegmentId={predictionCongestionBySegmentId}
-            popupDetailBySegmentId={predictionPopupDetailBySegmentId}
-            popupLabel="Next 15 minutes"
-          />
+      <section className="space-y-4">
+        <div>
+          <h3 className="text-2xl font-black text-slate-950">
+            Map of expected congestion
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-600">
+            This uses the same corridor map as the live page, but each marker
+            shows the congestion level expected in the next 15 minutes.
+          </p>
         </div>
-
-        <div className="rounded-[2rem] border border-black/10 bg-white/80 p-5 shadow-sm">
-          <h3 className="text-xl font-black text-slate-950">Map colors</h3>
-          <div className="mt-5 grid gap-3">
-            <div className="rounded-3xl bg-emerald-50 p-4">
-              <StatusPill tone="green">Low congestion</StatusPill>
-              <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
-                Traffic is expected to stay close to normal movement.
-              </p>
-            </div>
-            <div className="rounded-3xl bg-amber-50 p-4">
-              <StatusPill tone="amber">Medium congestion</StatusPill>
-              <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
-                Traffic is expected to be noticeably slower than normal.
-              </p>
-            </div>
-            <div className="rounded-3xl bg-red-50 p-4">
-              <StatusPill tone="red">High congestion</StatusPill>
-              <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
-                Traffic is expected to be much slower than normal.
-              </p>
-            </div>
-          </div>
-        </div>
+        <CorridorMap
+          segments={predictionMapSegments}
+          congestionBySegmentId={predictionCongestionBySegmentId}
+          popupDetailBySegmentId={predictionPopupDetailBySegmentId}
+          popupLabel="Next 15 minutes"
+        />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
@@ -385,7 +360,7 @@ export function PredictionDashboard() {
 
         <div className="rounded-[2rem] border border-black/10 bg-white/80 p-5 shadow-sm">
           <h3 className="text-xl font-black text-slate-950">What is changing soon</h3>
-          <div className="mt-5 grid grid-cols-2 gap-3">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <MetricCard
               label="Improving"
               value={String(trend.summary.improving)}

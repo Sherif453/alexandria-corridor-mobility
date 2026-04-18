@@ -263,7 +263,43 @@ function MetricTable({ scenarios }: { scenarios: ScenarioSummaryPayload[] }) {
           vehicles are better.
         </p>
       </div>
-      <div className="overflow-x-auto">
+      <div className="grid gap-3 p-4 md:hidden">
+        {readyScenarios.map((scenario) => (
+          <article
+            key={scenario.id}
+            className="rounded-3xl border border-black/10 bg-white p-4 shadow-sm"
+          >
+            <div className="flex flex-col gap-3">
+              <StatusPill tone={typeTone[scenario.type]}>{scenario.typeLabel}</StatusPill>
+              <h4 className="text-lg font-black leading-tight text-slate-950">
+                {scenario.name}
+              </h4>
+            </div>
+            <div className="mt-4 grid gap-3">
+              {scenario.metrics.map((metric) => (
+                <div key={metric.name} className="rounded-2xl bg-stone-50 p-3">
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
+                    {metric.label}
+                  </p>
+                  <p className="mt-1 text-lg font-black text-slate-950">
+                    {formatMetricValue(metric)}
+                  </p>
+                  {metric.deltaPercent !== null && scenario.type !== "baseline" ? (
+                    <p className="mt-1 text-xs font-bold text-slate-600">
+                      {formatChange(metric.deltaPercent)}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-xs leading-5 text-slate-600">
+                      {metric.description}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[780px] border-collapse text-left">
           <thead>
             <tr className="bg-stone-100 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
@@ -393,14 +429,16 @@ export function ScenarioComparison() {
             </h2>
             <p className="mt-5 max-w-3xl text-lg leading-8 text-stone-200">
               Compare normal corridor operation with four believable traffic
-              situations using travel time, delay, and queue length.
+              situations using travel time, delay, and queue length. Scenario
+              maps use the latest saved live congestion from the daily 7:00 AM
+              to midnight Cairo window.
             </p>
           </div>
           <button
             type="button"
             onClick={() => void loadScenarios()}
             disabled={isPending}
-            className="rounded-full border border-white/20 px-5 py-3 text-sm font-black text-white transition hover:bg-white hover:text-slate-950 disabled:opacity-60"
+            className="w-full rounded-full border border-white/20 px-5 py-3 text-sm font-black text-white transition hover:bg-white hover:text-slate-950 disabled:opacity-60 sm:w-fit"
           >
             {isPending ? "Refreshing" : "Refresh"}
           </button>
@@ -426,7 +464,7 @@ export function ScenarioComparison() {
               ? formatDateTime(payload.latestTrafficTimestampUtc)
               : "No live data"
           }
-          detail="The map and area results apply each scenario to current congestion."
+          detail="Scenarios use the latest saved congestion from the active daily window."
           tone={payload.latestTrafficTimestampUtc ? "green" : "amber"}
         />
       </section>

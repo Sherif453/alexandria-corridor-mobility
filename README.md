@@ -95,9 +95,6 @@ data/
 
 tests/
   core flow tests
-
-docs/
-  operational runbook, deployment notes, and supporting documentation
 ```
 
 API routes are intentionally thin. They validate inputs, delegate to services,
@@ -122,7 +119,7 @@ purpose so the system remains explainable and auditable.
 
 Create `.env` from `.env.example`.
 
-Required locally and on the VPS:
+Local and VPS baseline values:
 
 ```env
 DATABASE_URL="file:./dev.db"
@@ -149,6 +146,27 @@ ADMIN_REFRESH_MAX_SECONDS="420"
 
 Keep `ADMIN_REFRESH_ENABLED=false` in production. Since the app intentionally
 has no authentication, manual operational work should be run through SSH.
+
+For the hybrid Vercel frontend plus VPS backend setup:
+
+- On Vercel, set `BACKEND_API_BASE_URL` to the public VPS backend URL, set the
+  same `BACKEND_API_SECRET` used by the VPS, keep
+  `BACKEND_PROXY_ADMIN_REFRESH_ENABLED=false`, and do not set the TomTom key.
+- On the VPS, keep `BACKEND_API_BASE_URL=""`, set the same
+  `BACKEND_API_SECRET`, and only set `API_REQUIRE_BACKEND_SECRET=true` after
+  Vercel proxying is verified.
+- Rotate `BACKEND_API_SECRET` if it is ever exposed.
+
+Future environment changes should be rare:
+
+- Change `BACKEND_API_BASE_URL` only if the VPS backend domain changes.
+- Change `BACKEND_API_SECRET` only when rotating the shared Vercel/VPS secret.
+- Change `API_REQUIRE_BACKEND_SECRET` to `true` only after Vercel proxying is
+  confirmed.
+- Change `INGEST_DAILY_REQUEST_CAP` only if TomTom quota or sampling frequency
+  changes.
+- Do not change `DATABASE_URL`, `INGEST_TIMEZONE`, or the TomTom flow settings
+  unless the project architecture or provider requirements change.
 
 ## Local Setup
 
@@ -235,19 +253,34 @@ npm run scenarios:run
 
 ## VPS Background Jobs
 
-The VPS uses systemd timers for live collection and backup.
+The VPS uses systemd timers for live collection, prediction refresh, scenario
+refresh, model retraining, and backup.
 
-Check ingestion timer:
+Current production timers:
+
+- `alex-ingest.timer`: collects TomTom readings every 15 minutes in the active
+  window.
+- `alex-predictions.timer`: builds features and generates latest 15-minute
+  predictions every 15 minutes, offset after ingestion.
+- `alex-scenarios.timer`: refreshes SUMO scenario metrics every 2 hours in the
+  active window.
+- `alex-model-refresh.timer`: rebuilds features, retrains the model, and
+  regenerates predictions daily at 00:30.
+- `alex-backup.timer`: writes daily backup archives.
+
+Check all timers:
 
 ```bash
-systemctl list-timers --all | grep alex-ingest
-journalctl -u alex-ingest.service -n 80 --no-pager
+systemctl list-timers --all | grep alex
 ```
 
-Check backup timer:
+Check service logs:
 
 ```bash
-systemctl list-timers --all | grep alex-backup
+journalctl -u alex-ingest.service -n 80 --no-pager
+journalctl -u alex-predictions.service -n 80 --no-pager
+journalctl -u alex-scenarios.service -n 80 --no-pager
+journalctl -u alex-model-refresh.service -n 80 --no-pager
 journalctl -u alex-backup.service -n 80 --no-pager
 ```
 
@@ -271,6 +304,8 @@ curl http://localhost:3000/api/insights
 curl http://localhost:3000/api/scenarios
 curl http://localhost:3000/api/scenarios/baseline
 curl http://localhost:3000/api/scenarios/lane-reduction
+curl http://localhost:3000/api/scenarios/sidi-gaber-event-surge
+curl http://localhost:3000/api/scenarios/shatby-raml-curbside-bottleneck
 curl http://localhost:3000/api/scenarios/detour-mitigation
 ```
 

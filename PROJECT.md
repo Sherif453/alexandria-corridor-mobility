@@ -149,7 +149,6 @@ Python and job folders.
 - `data/processed/`: feature and intermediate processed outputs.
 - `data/exports/`: reports, scenario exports, metrics, and generated artifacts.
 - `tests/`: core flow tests.
-- `docs/`: architecture, API, schema, and operational notes.
 
 ## Data flow
 
@@ -447,7 +446,6 @@ alex-mobility/
     exports/
   public/
   tests/
-  docs/
   README.md
   PROJECT.md
 ```
@@ -666,6 +664,12 @@ The following items remain open:
   ingestion, Python ML, predictions, and SUMO. Backend API access can be
   restricted with `API_REQUIRE_BACKEND_SECRET=true` and the shared
   `BACKEND_API_SECRET`.
+- VPS live operation is automated with systemd timers: `alex-ingest.timer`
+  collects traffic every 15 minutes during the active window,
+  `alex-predictions.timer` builds features and regenerates latest predictions
+  every 15 minutes after ingestion, `alex-scenarios.timer` refreshes SUMO
+  scenario metrics every 2 hours, `alex-model-refresh.timer` retrains the model
+  daily after midnight, and `alex-backup.timer` preserves daily backups.
 - Manual refresh is implemented as `POST /api/admin/refresh`, but it is disabled
   by default through `ADMIN_REFRESH_ENABLED=false` because the project
   intentionally has no authentication.
@@ -673,13 +677,8 @@ The following items remain open:
   migration deploy, seeding, typecheck, lint, tests, Python syntax checks, and
   production build.
 - `README.md` now documents the product scope, architecture, stack, commands,
-  VPS operation, API checks, scenario pipeline, testing, CI, and demo flow.
-- `docs/RUNBOOK.md` is the VPS-first operating guide for health checks,
-  deployment, full data refresh, prediction refresh, scenario refresh, private
-  SSH-tunneled app startup, API verification, backups, and troubleshooting.
-- `docs/FREE_PUBLIC_DEPLOYMENT.md` records the free public deployment options
-  and documents why an Always Free VM is the realistic replacement for a paid
-  VPS under the current SQLite, scheduler, Python, and SUMO architecture.
+  VPS operation, hybrid deployment variables, automated timers, API checks,
+  scenario pipeline, testing, CI, and demo flow.
 
 ## Risks and mitigations
 
@@ -734,8 +733,7 @@ Current working setup commands:
 - Run tests: `npm test`
 - Build production app: `npm run build`
 - Open Prisma Studio: `npx prisma studio`
-- Full VPS operating guide: `docs/RUNBOOK.md`
-- Free public deployment options: `docs/FREE_PUBLIC_DEPLOYMENT.md`
+- Check VPS timers: `systemctl list-timers --all | grep alex`
 
 Still pending:
 

@@ -103,7 +103,8 @@ export function TrafficOverview() {
           </h2>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-stone-200">
             See where traffic is moving well, where it is slowing down, and
-            when the corridor was last updated.
+            when the corridor was last updated. Live readings are collected
+            from 7:00 AM to midnight Cairo time.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
@@ -152,7 +153,7 @@ export function TrafficOverview() {
           <MetricCard
             label="Latest update"
             value={formatDateTime(latest.freshness.latestTimestampUtc)}
-            detail={`${observedSegments} of ${totalSegments} monitored areas have recent readings.`}
+            detail={`${observedSegments} of ${totalSegments} monitored areas have recent readings during the daily live window.`}
           />
         </div>
       </section>
