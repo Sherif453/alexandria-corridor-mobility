@@ -12,6 +12,10 @@ import {
   listTrafficObservationsInRange,
 } from "@/lib/repositories/traffic-observation-repository";
 import { syncSegmentsFromDefinition } from "@/lib/services/segment-service";
+import {
+  getLiveWindowPayload,
+  getWindowAwareFreshnessStatus,
+} from "@/lib/time/live-window";
 
 const historyQuerySchema = z.object({
   segmentId: z.string().min(1).optional(),
@@ -47,16 +51,6 @@ function getSpeedRatio(speed: number | null, freeFlowSpeed: number | null): numb
   }
 
   return speed / freeFlowSpeed;
-}
-
-function getFreshnessStatus(latestTimestampUtc: Date | null): "fresh" | "stale" | "empty" {
-  if (!latestTimestampUtc) {
-    return "empty";
-  }
-
-  const ageMinutes = (Date.now() - latestTimestampUtc.getTime()) / 60_000;
-
-  return ageMinutes <= 30 ? "fresh" : "stale";
 }
 
 function getBucketStart(date: Date, granularity: "hour" | "day"): string {
@@ -134,12 +128,18 @@ export async function getLatestTrafficPayload() {
       return latest;
     }, null);
   const observedSegments = latestObservations.filter(Boolean).length;
+  const liveWindow = getLiveWindowPayload();
 
   return {
     corridor: buildCorridorPayload(segments.length),
     generatedAtUtc: new Date().toISOString(),
+    liveWindow,
     freshness: {
-      status: getFreshnessStatus(latestTimestampUtc),
+      status: getWindowAwareFreshnessStatus({
+        latestTimestampUtc,
+        liveWindow,
+        freshForMinutes: 30,
+      }),
       latestTimestampUtc: toIsoString(latestTimestampUtc),
       observedSegments,
       missingSegments: segments.length - observedSegments,
@@ -262,6 +262,7 @@ export async function getTrafficHistoryPayload(query: HistoryQuery) {
   return {
     corridor: buildCorridorPayload(segments.length),
     generatedAtUtc: new Date().toISOString(),
+    liveWindow: getLiveWindowPayload(),
     query: {
       segmentId: query.segmentId ?? null,
       hours: query.hours,

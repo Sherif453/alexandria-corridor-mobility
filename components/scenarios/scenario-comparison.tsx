@@ -9,6 +9,7 @@ import { CorridorMap } from "@/components/traffic/corridor-map";
 import {
   formatCongestionLabel,
   formatDateTime,
+  getLiveWindowOrDefault,
   getCongestionTone,
 } from "@/components/traffic/format";
 import type {
@@ -96,6 +97,20 @@ function getChangeTone(value: number | null) {
   return "amber" as const;
 }
 
+function getLatestScenarioRunUtc(scenarios: ScenarioSummaryPayload[]): string | null {
+  return scenarios.reduce<string | null>((latest, scenario) => {
+    if (!scenario.createdAtUtc) {
+      return latest;
+    }
+
+    if (!latest || new Date(scenario.createdAtUtc) > new Date(latest)) {
+      return scenario.createdAtUtc;
+    }
+
+    return latest;
+  }, null);
+}
+
 function ScenarioCard({ scenario }: { scenario: ScenarioSummaryPayload }) {
   return (
     <article className="rounded-[2rem] border border-black/10 bg-white/85 p-5 shadow-sm">
@@ -133,7 +148,14 @@ function ScenarioCard({ scenario }: { scenario: ScenarioSummaryPayload }) {
   );
 }
 
-function ScenarioImpactPanel({ scenario }: { scenario: ScenarioSummaryPayload }) {
+function ScenarioImpactPanel({
+  scenario,
+  liveWindow: rawLiveWindow,
+}: {
+  scenario: ScenarioSummaryPayload;
+  liveWindow: ScenarioListPayload["liveWindow"];
+}) {
+  const liveWindow = getLiveWindowOrDefault(rawLiveWindow);
   const mapSegments = scenario.segmentImpacts.map((impact) => ({
     segmentId: impact.segmentId,
     roadName: impact.roadName,
@@ -167,9 +189,10 @@ function ScenarioImpactPanel({ scenario }: { scenario: ScenarioSummaryPayload })
             Congestion map for: {scenario.name}
           </h3>
           <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-600">
-            Choose a scenario to see what would happen if it happened now. The
-            map starts from the latest live congestion level, then applies the
-            selected scenario to each monitored area.
+            Choose a scenario to see what would happen if it affected the
+            corridor. The map starts from{" "}
+            {liveWindow.isActiveNow ? "the latest live congestion level" : "the latest saved congestion level"}
+            , then applies the selected scenario to each monitored area.
           </p>
         </div>
         <StatusPill tone={scenario.status === "ready" ? "green" : "amber"}>
@@ -415,6 +438,8 @@ export function ScenarioComparison() {
   const selectedScenario =
     payload.scenarios.find((scenario) => scenario.id === selectedScenarioId) ??
     payload.scenarios[0];
+  const latestScenarioRunUtc = getLatestScenarioRunUtc(payload.scenarios);
+  const liveWindow = getLiveWindowOrDefault(payload.liveWindow);
 
   return (
     <div className="space-y-8">
@@ -430,8 +455,8 @@ export function ScenarioComparison() {
             <p className="mt-5 max-w-3xl text-lg leading-8 text-stone-200">
               Compare normal corridor operation with four believable traffic
               situations using travel time, delay, and queue length. Scenario
-              maps use the latest saved live congestion from the daily 7:00 AM
-              to midnight Cairo window.
+              maps use the latest saved live congestion from the daily{" "}
+              {liveWindow.activeFromLocal} to midnight Cairo window.
             </p>
           </div>
           <button
@@ -453,18 +478,22 @@ export function ScenarioComparison() {
         />
         <MetricCard
           label="Last run"
-          value={payload.latestVersion ? formatDateTime(payload.generatedAtUtc) : "No run yet"}
+          value={payload.latestVersion ? formatDateTime(latestScenarioRunUtc) : "No run yet"}
           detail={payload.message}
           tone={payload.status === "ready" ? "green" : "amber"}
         />
         <MetricCard
-          label="Live traffic used"
+          label={liveWindow.isActiveNow ? "Live traffic used" : "Latest saved traffic used"}
           value={
             payload.latestTrafficTimestampUtc
               ? formatDateTime(payload.latestTrafficTimestampUtc)
               : "No live data"
           }
-          detail="Scenarios use the latest saved congestion from the active daily window."
+          detail={
+            liveWindow.isActiveNow
+              ? "Scenarios apply to the latest live congestion."
+              : `Live scenario inputs resume at ${liveWindow.activeFromLocal} Cairo time.`
+          }
           tone={payload.latestTrafficTimestampUtc ? "green" : "amber"}
         />
       </section>
@@ -501,7 +530,7 @@ export function ScenarioComparison() {
         </div>
       </section>
 
-      <ScenarioImpactPanel scenario={selectedScenario} />
+      <ScenarioImpactPanel scenario={selectedScenario} liveWindow={liveWindow} />
 
       <section className="grid gap-4 xl:grid-cols-3">
         {payload.scenarios.map((scenario) => (

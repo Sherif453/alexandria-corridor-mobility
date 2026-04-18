@@ -10,6 +10,7 @@ import { CorridorMap } from "@/components/traffic/corridor-map";
 import {
   formatDateTime,
   formatCongestionLabel,
+  getLiveWindowOrDefault,
   formatPercent,
   formatSpeed,
   getCongestionTone,
@@ -144,6 +145,21 @@ export function LiveCorridor() {
   }
 
   const sortedSegments = getSortedSegments(latest.segments);
+  const liveWindow = getLiveWindowOrDefault(latest.liveWindow);
+  const statusText =
+    latest.freshness.status === "fresh"
+      ? "up to date"
+      : latest.freshness.status === "saved"
+        ? "latest saved result"
+        : latest.freshness.status === "stale"
+          ? "needs refresh"
+          : "waiting";
+  const statusTone =
+    latest.freshness.status === "fresh"
+      ? "green"
+      : latest.freshness.status === "stale"
+        ? "amber"
+        : "default";
 
   return (
     <div className="space-y-8">
@@ -158,9 +174,9 @@ export function LiveCorridor() {
                 Current traffic from Victoria to Raml
               </h2>
               <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-slate-600">
-                Live readings update from 7:00 AM to midnight Cairo time. After
-                midnight, this page keeps showing the latest saved corridor
-                reading until collection starts again.
+                Live readings update from {liveWindow.activeFromLocal} to
+                midnight Cairo time. Outside those hours, this page shows the
+                latest saved corridor reading until collection starts again.
               </p>
             </div>
             <button
@@ -177,15 +193,13 @@ export function LiveCorridor() {
         <aside className="grid gap-4">
           <MetricCard
             label="Update status"
-            value={
-              latest.freshness.status === "fresh"
-                ? "up to date"
-                : latest.freshness.status === "stale"
-                  ? "needs refresh"
-                  : "waiting"
+            value={statusText}
+            detail={
+              liveWindow.isActiveNow
+                ? `Latest reading: ${formatDateTime(latest.freshness.latestTimestampUtc)}`
+                : `Live updates resume at ${liveWindow.activeFromLocal} Cairo time.`
             }
-            detail={`Latest reading: ${formatDateTime(latest.freshness.latestTimestampUtc)}`}
-            tone={latest.freshness.status === "fresh" ? "green" : "amber"}
+            tone={statusTone}
           />
           <MetricCard
             label="Coverage"

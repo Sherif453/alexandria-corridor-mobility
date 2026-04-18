@@ -9,6 +9,7 @@ import { readApi } from "@/components/traffic/api";
 import { CongestionStack } from "@/components/traffic/congestion-stack";
 import {
   formatDateTime,
+  getLiveWindowOrDefault,
   formatPercent,
   formatSpeed,
 } from "@/components/traffic/format";
@@ -25,6 +26,10 @@ function getFreshnessTone(status: LatestTrafficPayload["freshness"]["status"]) {
     return "green" as const;
   }
 
+  if (status === "saved") {
+    return "slate" as const;
+  }
+
   if (status === "stale") {
     return "amber" as const;
   }
@@ -35,6 +40,10 @@ function getFreshnessTone(status: LatestTrafficPayload["freshness"]["status"]) {
 function formatFreshnessText(status: LatestTrafficPayload["freshness"]["status"]) {
   if (status === "fresh") {
     return "up to date";
+  }
+
+  if (status === "saved") {
+    return "latest saved result";
   }
 
   if (status === "stale") {
@@ -90,6 +99,8 @@ export function TrafficOverview() {
   const { latest, history } = state;
   const observedSegments = latest.freshness.observedSegments;
   const totalSegments = latest.corridor.samplePointCount;
+  const liveWindow = getLiveWindowOrDefault(latest.liveWindow);
+  const liveWindowText = `${liveWindow.activeFromLocal} to midnight Cairo time`;
 
   return (
     <div className="space-y-8">
@@ -104,7 +115,7 @@ export function TrafficOverview() {
           <p className="mt-6 max-w-2xl text-lg leading-8 text-stone-200">
             See where traffic is moving well, where it is slowing down, and
             when the corridor was last updated. Live readings are collected
-            from 7:00 AM to midnight Cairo time.
+            from {liveWindowText}.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
@@ -153,7 +164,11 @@ export function TrafficOverview() {
           <MetricCard
             label="Latest update"
             value={formatDateTime(latest.freshness.latestTimestampUtc)}
-            detail={`${observedSegments} of ${totalSegments} monitored areas have recent readings during the daily live window.`}
+            detail={
+              liveWindow.isActiveNow
+                ? `${observedSegments} of ${totalSegments} monitored areas have recent readings.`
+                : `Live updates are paused. They resume at ${liveWindow.activeFromLocal} Cairo time.`
+            }
           />
         </div>
       </section>

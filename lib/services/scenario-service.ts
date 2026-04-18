@@ -18,6 +18,7 @@ import {
 } from "@/lib/scenarios/metrics";
 import { listSegments } from "@/lib/repositories/segment-repository";
 import { getLatestTrafficObservations } from "@/lib/repositories/traffic-observation-repository";
+import { getLiveWindowPayload } from "@/lib/time/live-window";
 
 const scenarioIdSchema = z
   .string()
@@ -284,6 +285,7 @@ export async function getScenarioListPayload() {
 
   return {
     generatedAtUtc: new Date().toISOString(),
+    liveWindow: getLiveWindowPayload(),
     latestTrafficTimestampUtc: getLatestObservationTimestamp(latestObservations),
     latestVersion,
     status: latestVersion ? ("ready" as const) : ("missing" as const),
@@ -321,6 +323,7 @@ export async function getScenarioDetailPayload(scenarioId: string) {
 
     return {
       generatedAtUtc: new Date().toISOString(),
+      liveWindow: getLiveWindowPayload(),
       latestTrafficTimestampUtc: getLatestObservationTimestamp(latestObservations),
       latestVersion: null,
       scenario: buildScenarioSummary({
@@ -355,6 +358,7 @@ export async function getScenarioDetailPayload(scenarioId: string) {
 
   return {
     generatedAtUtc: new Date().toISOString(),
+    liveWindow: getLiveWindowPayload(),
     latestTrafficTimestampUtc: getLatestObservationTimestamp(latestObservations),
     latestVersion,
     scenario: buildScenarioSummary({

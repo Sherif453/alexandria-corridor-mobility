@@ -10,6 +10,7 @@ import {
   formatCongestionLabel,
   formatDateTime,
   formatPercent,
+  getLiveWindowOrDefault,
   getCongestionTone,
 } from "@/components/traffic/format";
 import { LoadingPanel } from "@/components/traffic/loading-panel";
@@ -34,6 +35,10 @@ const trendTone = {
 function getFreshnessTone(status: LatestPredictionsPayload["freshness"]["status"]) {
   if (status === "fresh") {
     return "green" as const;
+  }
+
+  if (status === "saved") {
+    return "slate" as const;
   }
 
   if (status === "stale") {
@@ -65,6 +70,10 @@ function TrendDefinitionCard({
 function formatFreshnessText(status: LatestPredictionsPayload["freshness"]["status"]) {
   if (status === "fresh") {
     return "up to date";
+  }
+
+  if (status === "saved") {
+    return "latest saved result";
   }
 
   if (status === "stale") {
@@ -181,6 +190,7 @@ export function PredictionDashboard() {
   const totalSegments = latest.corridor.samplePointCount;
   const highCount = latest.summary.predictionCounts.High ?? 0;
   const mediumCount = latest.summary.predictionCounts.Medium ?? 0;
+  const liveWindow = getLiveWindowOrDefault(latest.liveWindow);
   const leadingSegments = latest.segments
     .filter((segment) => segment.prediction)
     .sort((left, right) => {
@@ -244,7 +254,8 @@ export function PredictionDashboard() {
               This page shows each monitored area from Victoria to Raml, compares
               the current congestion level with the expected level in the next
               15-minute window, and highlights where traffic may get worse.
-              These results update from 7:00 AM to midnight Cairo time.
+              These results update from {liveWindow.activeFromLocal} to
+              midnight Cairo time.
             </p>
           </div>
           <button
@@ -279,7 +290,11 @@ export function PredictionDashboard() {
         <MetricCard
           label="Last updated"
           value={formatDateTime(latest.freshness.latestPredictionTimestampUtc)}
-          detail="Latest calculation from the daily 7:00 AM to midnight live window."
+          detail={
+            liveWindow.isActiveNow
+              ? "Latest next-15-minute calculation."
+              : `Live prediction updates are paused. They resume at ${liveWindow.activeFromLocal} Cairo time.`
+          }
         />
       </section>
 

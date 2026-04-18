@@ -19,6 +19,16 @@ export type CorridorPayload = {
   samplePointCount: number;
 };
 
+export type LiveWindowPayload = {
+  timezone: string;
+  activeFromLocal: string;
+  activeUntilLocal: string;
+  isActiveNow: boolean;
+  checkedAtUtc: string;
+};
+
+export type FreshnessStatus = "fresh" | "stale" | "saved" | "empty";
+
 export type TrafficObservationPayload = {
   id: string;
   segmentId: string;
@@ -46,8 +56,9 @@ export type TrafficSegmentPayload = {
 export type LatestTrafficPayload = {
   corridor: CorridorPayload;
   generatedAtUtc: string;
+  liveWindow: LiveWindowPayload;
   freshness: {
-    status: "fresh" | "stale" | "empty";
+    status: FreshnessStatus;
     latestTimestampUtc: string | null;
     observedSegments: number;
     missingSegments: number;
@@ -76,6 +87,7 @@ export type AggregatedTrafficHistoryPoint = {
 export type TrafficHistoryPayload = {
   corridor: CorridorPayload;
   generatedAtUtc: string;
+  liveWindow: LiveWindowPayload;
   query: {
     segmentId: string | null;
     hours: number;
@@ -121,6 +133,7 @@ export type PredictionSegmentPayload = {
 export type LatestPredictionsPayload = {
   corridor: CorridorPayload;
   generatedAtUtc: string;
+  liveWindow: LiveWindowPayload;
   model: {
     version: string | null;
     runId: string | null;
@@ -130,7 +143,7 @@ export type LatestPredictionsPayload = {
     warnings: string[];
   };
   freshness: {
-    status: "fresh" | "stale" | "empty";
+    status: FreshnessStatus;
     latestPredictionTimestampUtc: string | null;
     predictedSegments: number;
     missingSegments: number;
@@ -238,6 +251,7 @@ export type ScenarioSummaryPayload = {
 
 export type ScenarioListPayload = {
   generatedAtUtc: string;
+  liveWindow: LiveWindowPayload;
   latestTrafficTimestampUtc: string | null;
   latestVersion: string | null;
   status: "ready" | "missing";
@@ -247,6 +261,7 @@ export type ScenarioListPayload = {
 
 export type ScenarioDetailPayload = {
   generatedAtUtc: string;
+  liveWindow: LiveWindowPayload;
   latestTrafficTimestampUtc: string | null;
   latestVersion: string | null;
   scenario: ScenarioSummaryPayload;

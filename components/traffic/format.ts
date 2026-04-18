@@ -1,3 +1,5 @@
+import type { LiveWindowPayload } from "@/lib/types/traffic";
+
 export function formatNumber(value: number | null | undefined, digits = 1): string {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return "No data";
@@ -32,6 +34,20 @@ export function formatDateTime(value: string | null | undefined): string {
     timeStyle: "short",
     timeZone: "Africa/Cairo",
   }).format(new Date(value));
+}
+
+export function getLiveWindowOrDefault(
+  liveWindow: LiveWindowPayload | null | undefined,
+): LiveWindowPayload {
+  return (
+    liveWindow ?? {
+      timezone: "Africa/Cairo",
+      activeFromLocal: "07:00",
+      activeUntilLocal: "00:00",
+      isActiveNow: true,
+      checkedAtUtc: new Date().toISOString(),
+    }
+  );
 }
 
 export function getCongestionTone(label: string | null | undefined) {

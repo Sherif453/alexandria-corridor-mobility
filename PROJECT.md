@@ -450,53 +450,6 @@ alex-mobility/
   PROJECT.md
 ```
 
-## Implementation roadmap
-
-### Week 1
-
-The first week centers on scope freeze, repo skeleton, architecture contract,
-Next.js initialization, Prisma and SQLite setup, corridor segment strategy, and
-initial documentation.
-
-### Week 2
-
-The second week centers on traffic source integration, monitored sample points,
-quota-safe scheduled ingestion, raw observation persistence, and the latest
-traffic endpoint.
-
-### Week 3
-
-The third week centers on the frontend baseline, live corridor surfaces,
-freshness status, data inspection, and historical analytics routes and pages.
-
-### Week 4
-
-The fourth week centers on feature engineering, dataset construction, baseline
-model training, time-based evaluation, artifact storage, and the first
-prediction-serving path.
-
-### Week 5
-
-The fifth week centers on inference integration, prediction storage, latest
-prediction and trend APIs, prediction and insights pages, confidence surfaces,
-and caching.
-
-### Week 6
-
-The sixth week centers on SUMO integration, baseline/disruption/mitigation
-scenarios, scenario persistence, scenario APIs, and the comparison UI.
-
-### Week 7
-
-The seventh week centers on placeholder removal, real API integration across
-pages, refactoring, tests, freshness and quota indicators, and export paths
-where helpful.
-
-### Week 8
-
-The eighth week centers on README finalization, screenshots, QA, demo
-preparation, and release freeze.
-
 ## Milestone checklist
 
 - [x] Read PDF roadmap and extract implementation contract
@@ -577,15 +530,15 @@ The following items remain open:
   real neighborhoods, tram/rail stops, squares, hospitals, schools, and other
   named landmarks along the fixed Victoria -> Sidi Gaber -> Raml sample chain.
 - The current corridor geometry no longer uses straight anchor interpolation or
-  locality interpolation. Definition version `2026-04-18.v7` uses 35 fixed
-  sampled points from an OSM/OSRM drivable route whose main mapped spine is
-  `شارع جمال عبد الناصر` / `Gamal Abd Al Naser Street` from Victoria toward
-  Raml. The final western connector keeps the PDF-required Raml endpoint even
-  though the named OSM way ends east of Mahattet El Raml.
-- The coordinate correction means observations collected before `2026-04-18.v7`
-  should not be used for final training. After deploying v7 to the VPS, reset
-  old observations/features/predictions/model outputs and start the final
-  collection window from the corrected points.
+  locality interpolation. Definition uses 35 fixed sampled points from an
+  OSM/OSRM drivable route whose main mapped spine is `شارع جمال عبد الناصر` /
+  `Gamal Abd Al Naser Street` from Victoria toward Raml. The final western
+  connector keeps the PDF-required Raml endpoint even though the named OSM way
+  ends east of Mahattet El Raml.
+- The coordinate correction means observations collected before should not be
+  used for final training. After deploying v7 to the VPS, reset old
+  observations/features/predictions/model outputs and start the final collection
+  window from the corrected points.
 - The ingestion foundation uses TomTom Flow Segment Data v4, a stop-before-cap
   daily quota guard, a rolling 24-hour quota usage check, and a local active
   window of 07:00-24:00 in `Africa/Cairo`.
@@ -670,6 +623,10 @@ The following items remain open:
   every 15 minutes after ingestion, `alex-scenarios.timer` refreshes SUMO
   scenario metrics every 2 hours, `alex-model-refresh.timer` retrains the model
   daily after midnight, and `alex-backup.timer` preserves daily backups.
+- API freshness is live-window aware. From 07:00 to midnight Cairo time, recent
+  readings and predictions can show as up to date. Outside that window, the app
+  presents the same data as latest saved results so users do not mistake
+  overnight snapshots for live updates.
 - Manual refresh is implemented as `POST /api/admin/refresh`, but it is disabled
   by default through `ADMIN_REFRESH_ENABLED=false` because the project
   intentionally has no authentication.

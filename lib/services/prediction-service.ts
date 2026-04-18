@@ -13,6 +13,12 @@ import { getLatestPredictionsForSegments } from "@/lib/repositories/prediction-r
 import { listSegments } from "@/lib/repositories/segment-repository";
 import { getLatestTrafficObservations } from "@/lib/repositories/traffic-observation-repository";
 import { syncSegmentsFromDefinition } from "@/lib/services/segment-service";
+import {
+  getLiveWindowPayload,
+  getWindowAwareFreshnessStatus,
+  type FreshnessStatus,
+  type LiveWindowPayload,
+} from "@/lib/time/live-window";
 
 type LatestObservation = Awaited<ReturnType<typeof getLatestTrafficObservations>>[number];
 type LatestPrediction = Awaited<ReturnType<typeof getLatestPredictionsForSegments>>[number];
@@ -129,7 +135,9 @@ function parseModelWarnings(metricsJson: string | null | undefined): string[] {
 
 function getPredictionFreshness(
   predictions: Array<LatestPrediction>,
-): "fresh" | "stale" | "empty" {
+  latestPredictionTimestampUtc: Date | null,
+  liveWindow: LiveWindowPayload,
+): FreshnessStatus {
   const predictionRows = predictions.filter(
     (prediction): prediction is NonNullable<typeof prediction> => Boolean(prediction),
   );
@@ -138,21 +146,11 @@ function getPredictionFreshness(
     return "empty";
   }
 
-  const latestCreatedAt = predictionRows.reduce<Date | null>((latest, prediction) => {
-    if (!latest || prediction.createdAt > latest) {
-      return prediction.createdAt;
-    }
-
-    return latest;
-  }, null);
-
-  if (!latestCreatedAt) {
-    return "empty";
-  }
-
-  const ageMinutes = (Date.now() - latestCreatedAt.getTime()) / 60_000;
-
-  return ageMinutes <= 60 ? "fresh" : "stale";
+  return getWindowAwareFreshnessStatus({
+    latestTimestampUtc: latestPredictionTimestampUtc,
+    liveWindow,
+    freshForMinutes: 30,
+  });
 }
 
 function getTrend(params: {
@@ -272,10 +270,12 @@ export async function getLatestPredictionsPayload() {
   const observationRows = latestObservations.filter(
     (observation): observation is NonNullable<typeof observation> => Boolean(observation),
   );
+  const liveWindow = getLiveWindowPayload();
 
   return {
     corridor: buildCorridorPayload(segments.length),
     generatedAtUtc: new Date().toISOString(),
+    liveWindow,
     model: {
       version: modelRun?.version ?? null,
       runId: modelRun?.runId ?? null,
@@ -285,7 +285,7 @@ export async function getLatestPredictionsPayload() {
       warnings: parseModelWarnings(modelRun?.metricsJson),
     },
     freshness: {
-      status: getPredictionFreshness(predictions),
+      status: getPredictionFreshness(predictions, latestPredictionTimestampUtc, liveWindow),
       latestPredictionTimestampUtc: toIsoString(latestPredictionTimestampUtc),
       predictedSegments,
       missingSegments: segments.length - predictedSegments,

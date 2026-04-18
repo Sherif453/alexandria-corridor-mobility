@@ -8,6 +8,7 @@ import { readApi } from "@/components/traffic/api";
 import {
   formatDateTime,
   formatCongestionLabel,
+  getLiveWindowOrDefault,
   formatPercent,
   formatSpeed,
   getCongestionTone,
@@ -292,6 +293,7 @@ export function HistoryAnalytics() {
   if (!history) {
     return <LoadingPanel title="History unavailable" message={error ?? "No history response is available."} />;
   }
+  const liveWindow = getLiveWindowOrDefault(history.liveWindow);
 
   return (
     <div className="space-y-8">
@@ -306,8 +308,8 @@ export function HistoryAnalytics() {
               </h2>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
               Review speed and congestion patterns for the selected time window.
-              New live readings are collected daily from 7:00 AM to midnight
-              Cairo time.
+              New live readings are collected daily from{" "}
+              {liveWindow.activeFromLocal} to midnight Cairo time.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

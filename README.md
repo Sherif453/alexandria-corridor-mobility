@@ -3,7 +3,7 @@
 A full-stack traffic intelligence product for one fixed Alexandria corridor:
 
 ```text
-Victoria -> Sidi Gaber -> Raml (Mahattet El Raml)
+Victoria -> Sidi Gaber -> Raml (Mahattet El Raml) / Abu Qir
 ```
 
 The system collects live corridor traffic data, stores it in SQLite, builds
@@ -152,9 +152,9 @@ For the hybrid Vercel frontend plus VPS backend setup:
 - On Vercel, set `BACKEND_API_BASE_URL` to the public VPS backend URL, set the
   same `BACKEND_API_SECRET` used by the VPS, keep
   `BACKEND_PROXY_ADMIN_REFRESH_ENABLED=false`, and do not set the TomTom key.
-- On the VPS, keep `BACKEND_API_BASE_URL=""`, set the same
-  `BACKEND_API_SECRET`, and only set `API_REQUIRE_BACKEND_SECRET=true` after
-  Vercel proxying is verified.
+- On the VPS, keep `BACKEND_API_BASE_URL=""`, set the same `BACKEND_API_SECRET`,
+  and only set `API_REQUIRE_BACKEND_SECRET=true` after Vercel proxying is
+  verified.
 - Rotate `BACKEND_API_SECRET` if it is ever exposed.
 
 Future environment changes should be rare:
@@ -267,6 +267,11 @@ Current production timers:
 - `alex-model-refresh.timer`: rebuilds features, retrains the model, and
   regenerates predictions daily at 00:30.
 - `alex-backup.timer`: writes daily backup archives.
+
+User-facing freshness is tied to the same live window. During the active window,
+recent traffic and prediction results can show as up to date. Outside the active
+window, the app shows them as latest saved results until live collection resumes
+at 07:00 Cairo time.
 
 Check all timers:
 
