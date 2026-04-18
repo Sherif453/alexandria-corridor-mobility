@@ -11,7 +11,6 @@ const navigation = [
   { href: "/predictions", label: "Next 15 min" },
   { href: "/scenarios", label: "Scenarios" },
   { href: "/insights", label: "Guidance" },
-  { href: "/methodology", label: "Method" },
 ];
 
 export function PageShell({ children }: PageShellProps) {

@@ -1,12 +1,3 @@
-type CorridorAnchor = {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  source: string;
-  sourceUrl: string;
-};
-
 export type CorridorSegmentDefinition = {
   segmentId: string;
   displayName: string;
@@ -25,91 +16,25 @@ export const CORRIDOR_NAME =
   "Alexandria Corridor Mobility Intelligence Corridor";
 export const CORRIDOR_SCOPE = "Victoria -> Sidi Gaber -> Raml (Mahattet El Raml)";
 export const CORRIDOR_SAMPLE_POINT_COUNT = 35;
-export const CORRIDOR_DEFINITION_VERSION = "2026-04-16.v6";
+export const CORRIDOR_DEFINITION_VERSION = "2026-04-18.v7";
 
-// Fixed points follow a documented corridor polyline across named localities on
-// the Abu Qir / Al-Horreya axis, rather than a direct interpolation between
-// only three anchors.
-export const CORRIDOR_ROUTE_WAYPOINTS: readonly CorridorAnchor[] = [
-  {
-    id: "victoria-station",
-    name: "Victoria Station",
-    latitude: 31.24838,
-    longitude: 29.97882,
-    source: "Mapcarta / OpenStreetMap",
-    sourceUrl: "https://mapcarta.com/13052536",
-  },
-  {
-    id: "bakos",
-    name: "Bakos",
-    latitude: 31.23379,
-    longitude: 29.9702,
-    source: "Mapcarta / OpenStreetMap",
-    sourceUrl: "https://mapcarta.com/W749734834",
-  },
-  {
-    id: "saba-pasha",
-    name: "Saba Pasha",
-    latitude: 31.23695,
-    longitude: 29.95597,
-    source: "Mapcarta / GeoNames",
-    sourceUrl: "https://mapcarta.com/30529722",
-  },
-  {
-    id: "sidi-gaber-railway-station",
-    name: "Sidi Gaber Railway Station",
-    latitude: 31.219371,
-    longitude: 29.942787,
-    source: "Wikipedia / GeoHack",
-    sourceUrl: "https://en.wikipedia.org/wiki/Sidi_Gaber_railway_station",
-  },
-  {
-    id: "sporting-district",
-    name: "Sporting District",
-    latitude: 31.21732,
-    longitude: 29.93305,
-    source: "Mapcarta / GeoNames",
-    sourceUrl: "https://mapcarta.com/30534664",
-  },
-  {
-    id: "camp-cesar-district",
-    name: "Camp Cesar District",
-    latitude: 31.21276,
-    longitude: 29.92049,
-    source: "Mapcarta / GeoNames",
-    sourceUrl: "https://mapcarta.com/30531376",
-  },
-  {
-    id: "shatby",
-    name: "Shatby",
-    latitude: 31.2,
-    longitude: 29.91667,
-    source: "Mapcarta / OpenStreetMap",
-    sourceUrl: "https://mapcarta.com/13065708",
-  },
-  {
-    id: "el-raml-station",
-    name: "El Raml Station",
-    latitude: 31.199167,
-    longitude: 29.901667,
-    source: "Wikimapia",
-    sourceUrl: "https://wikimapia.org/1708314/Raml-Station-Area-Downtown",
-  },
-] as const;
-
+// Fixed monitored points are sampled from the OSM/OSRM drivable route whose
+// main mapped spine is `شارع جمال عبد الناصر` / `Gamal Abd Al Naser Street`
+// from Victoria toward Raml. The final western connector keeps the PDF-required
+// Raml endpoint even though the named OSM way ends east of Mahattet El Raml.
 const CORRIDOR_SEGMENT_LOCALITIES = [
-  "Victoria Station",
-  "Luran Station",
-  "Gnaklis Station",
-  "Shots Station",
-  "Safer Station",
+  "Victoria",
+  "Victoria College",
+  "Louran",
+  "Gnaklis",
   "Bakos",
-  "Bakus Tram Stop",
-  "Bakus",
+  "Notre Dame de Sion",
+  "Fleming",
   "Petroleum Hospital",
   "Fleming Station",
-  "Gleem",
+  "Raml Police Station",
   "Saba Pasha",
+  "Gleem",
   "Stanley",
   "Rushdi",
   "Mostafa Kamel Tombs",
@@ -118,16 +43,16 @@ const CORRIDOR_SEGMENT_LOCALITIES = [
   "Sidi Gaber",
   "Cleopatra Station",
   "Cleopatra",
-  "Sporting El-Kobra Station",
+  "Sporting El-Kobra",
   "Sporting",
   "Al-Ibrahimia",
   "Ibrahimia",
   "Camp Caesar",
-  "Camp Caesar District",
+  "Camp Caesar Bridge",
   "El Shatby Station",
   "College Saint-Marc",
   "Shatby",
-  "Shatby",
+  "Shatby Hospital",
   "Azarita Cemetery",
   "Al Khartoum Square",
   "Azarita District",
@@ -135,87 +60,49 @@ const CORRIDOR_SEGMENT_LOCALITIES = [
   "Raml Station",
 ] as const;
 
-if (CORRIDOR_SEGMENT_LOCALITIES.length !== CORRIDOR_SAMPLE_POINT_COUNT) {
-  throw new Error("Corridor locality labels must match the sample point count.");
-}
+const CORRIDOR_ROUTE_POINTS = [
+  { latitude: 31.249492, longitude: 29.980524 },
+  { latitude: 31.247722, longitude: 29.978375 },
+  { latitude: 31.246394, longitude: 29.975788 },
+  { latitude: 31.245286, longitude: 29.973053 },
+  { latitude: 31.243804, longitude: 29.97058 },
+  { latitude: 31.242168, longitude: 29.968235 },
+  { latitude: 31.240563, longitude: 29.965877 },
+  { latitude: 31.239053, longitude: 29.963433 },
+  { latitude: 31.237192, longitude: 29.961377 },
+  { latitude: 31.235151, longitude: 29.959519 },
+  { latitude: 31.233142, longitude: 29.957612 },
+  { latitude: 31.231153, longitude: 29.955679 },
+  { latitude: 31.229284, longitude: 29.953588 },
+  { latitude: 31.227602, longitude: 29.951298 },
+  { latitude: 31.226056, longitude: 29.948872 },
+  { latitude: 31.224295, longitude: 29.946692 },
+  { latitude: 31.222265, longitude: 29.944823 },
+  { latitude: 31.220362, longitude: 29.942774 },
+  { latitude: 31.218476, longitude: 29.940703 },
+  { latitude: 31.216619, longitude: 29.938596 },
+  { latitude: 31.2147, longitude: 29.936567 },
+  { latitude: 31.212777, longitude: 29.934542 },
+  { latitude: 31.210853, longitude: 29.932519 },
+  { latitude: 31.20894, longitude: 29.930483 },
+  { latitude: 31.207199, longitude: 29.92827 },
+  { latitude: 31.205806, longitude: 29.925728 },
+  { latitude: 31.204687, longitude: 29.923 },
+  { latitude: 31.203586, longitude: 29.920263 },
+  { latitude: 31.202521, longitude: 29.917506 },
+  { latitude: 31.201528, longitude: 29.914745 },
+  { latitude: 31.202444, longitude: 29.912113 },
+  { latitude: 31.201813, longitude: 29.90918 },
+  { latitude: 31.200548, longitude: 29.906542 },
+  { latitude: 31.199352, longitude: 29.903883 },
+  { latitude: 31.199001, longitude: 29.901358 },
+] as const;
 
-function distanceBetween(
-  start: { latitude: number; longitude: number },
-  end: { latitude: number; longitude: number },
+if (
+  CORRIDOR_SEGMENT_LOCALITIES.length !== CORRIDOR_SAMPLE_POINT_COUNT ||
+  CORRIDOR_ROUTE_POINTS.length !== CORRIDOR_SAMPLE_POINT_COUNT
 ) {
-  const deltaLatitude = end.latitude - start.latitude;
-  const deltaLongitude = end.longitude - start.longitude;
-
-  return Math.sqrt(deltaLatitude ** 2 + deltaLongitude ** 2);
-}
-
-function interpolateAtDistance(
-  start: { latitude: number; longitude: number },
-  end: { latitude: number; longitude: number },
-  progress: number,
-) {
-  return {
-    latitude: Number(
-      (start.latitude + (end.latitude - start.latitude) * progress).toFixed(6),
-    ),
-    longitude: Number(
-      (start.longitude + (end.longitude - start.longitude) * progress).toFixed(6),
-    ),
-  };
-}
-
-function samplePolyline(
-  waypoints: readonly CorridorAnchor[],
-  totalPoints: number,
-): { latitude: number; longitude: number }[] {
-  if (waypoints.length < 2) {
-    throw new Error("At least two waypoints are required.");
-  }
-
-  const legs = waypoints.slice(0, -1).map((waypoint, index) => {
-    const nextWaypoint = waypoints[index + 1];
-    const length = distanceBetween(waypoint, nextWaypoint);
-
-    return {
-      start: waypoint,
-      end: nextWaypoint,
-      length,
-    };
-  });
-
-  const totalLength = legs.reduce((sum, leg) => sum + leg.length, 0);
-
-  if (totalLength === 0) {
-    return Array.from({ length: totalPoints }, () => ({
-      latitude: waypoints[0].latitude,
-      longitude: waypoints[0].longitude,
-    }));
-  }
-
-  return Array.from({ length: totalPoints }, (_, index) => {
-    const targetDistance =
-      (totalLength * index) / Math.max(totalPoints - 1, 1);
-
-    let traversed = 0;
-
-    for (const leg of legs) {
-      if (targetDistance <= traversed + leg.length) {
-        const legProgress =
-          leg.length === 0 ? 0 : (targetDistance - traversed) / leg.length;
-
-        return interpolateAtDistance(leg.start, leg.end, legProgress);
-      }
-
-      traversed += leg.length;
-    }
-
-    const lastWaypoint = waypoints[waypoints.length - 1];
-
-    return {
-      latitude: Number(lastWaypoint.latitude.toFixed(6)),
-      longitude: Number(lastWaypoint.longitude.toFixed(6)),
-    };
-  });
+  throw new Error("Corridor labels and points must match the sample point count.");
 }
 
 function toGeometryRef(latitude: number, longitude: number): string {
@@ -223,12 +110,7 @@ function toGeometryRef(latitude: number, longitude: number): string {
 }
 
 function buildCorridorSegments(): CorridorSegmentDefinition[] {
-  const orderedPoints = samplePolyline(
-    CORRIDOR_ROUTE_WAYPOINTS,
-    CORRIDOR_SAMPLE_POINT_COUNT,
-  );
-
-  return orderedPoints.map((point, index) => {
+  return CORRIDOR_ROUTE_POINTS.map((point, index) => {
     const sortOrder = index + 1;
 
     return {

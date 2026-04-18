@@ -35,8 +35,7 @@ The product surfaces are:
 - Historical analytics
 - Prediction page
 - Scenario comparison page
-- Insights page
-- Methodology page
+- Guidance page
 
 The required backend capabilities are:
 
@@ -150,7 +149,7 @@ Python and job folders.
 - `data/processed/`: feature and intermediate processed outputs.
 - `data/exports/`: reports, scenario exports, metrics, and generated artifacts.
 - `tests/`: core flow tests.
-- `docs/`: architecture, API, schema, and methodology notes.
+- `docs/`: architecture, API, schema, and operational notes.
 
 ## Data flow
 
@@ -313,14 +312,11 @@ confidence, timestamp, explanation, and trend indicator.
 This page compares baseline versus disruption versus mitigation using metric
 tables, deltas, and before/after charts.
 
-### Insights page
+### Guidance page
 
-This page turns the data into advice by combining auto-generated
-recommendations, caveats, and reliability context.
-
-### Methodology page
-
-This page explains the scope, data sources, limitations, and model summary.
+This page explains how normal users should read and use the app: overview,
+live corridor, history, next-15-minute results, scenarios, congestion levels,
+and change words.
 
 ### Cross-page UX requirements
 
@@ -531,7 +527,7 @@ preparation, and release freeze.
 - [x] Implement `/api/scenarios`
 - [x] Implement `/api/scenarios/[id]`
 - [x] Build scenario comparison page
-- [x] Build methodology page
+- [x] Replace separate explanation page with user guidance page
 - [x] Implement `/api/admin/refresh`
 - [x] Add tests for core flows
 - [ ] Finalize docs, tests, screenshots, and run instructions
@@ -539,16 +535,6 @@ preparation, and release freeze.
 ## Open questions
 
 The following items remain open:
-
-- Exact monitored sample point coordinates
-  - A fixed set of 35 monitored points is now defined in
-    `lib/corridor/definition.ts`.
-  - The current coordinates follow a documented corridor polyline through
-    Victoria, Bakos, Saba Pasha, Sidi Gaber, Sporting, Camp Caesar, Shatby, and
-    El Raml.
-  - The remaining open part is whether they should later be refined to exact
-    road-centerline monitoring coordinates after live ingestion is running
-    reliably.
 
 - SUMO network refinement path
   - The first working scenario pipeline uses SUMO PlainXML generated from the
@@ -591,9 +577,16 @@ The following items remain open:
   label instead of the generic corridor road name. The current label set uses
   real neighborhoods, tram/rail stops, squares, hospitals, schools, and other
   named landmarks along the fixed Victoria -> Sidi Gaber -> Raml sample chain.
-- The current corridor geometry no longer uses a straight anchor interpolation.
-  It now samples a route polyline built from map-evidenced localities along the
-  Alexandria east-west urban axis.
+- The current corridor geometry no longer uses straight anchor interpolation or
+  locality interpolation. Definition version `2026-04-18.v7` uses 35 fixed
+  sampled points from an OSM/OSRM drivable route whose main mapped spine is
+  `شارع جمال عبد الناصر` / `Gamal Abd Al Naser Street` from Victoria toward
+  Raml. The final western connector keeps the PDF-required Raml endpoint even
+  though the named OSM way ends east of Mahattet El Raml.
+- The coordinate correction means observations collected before
+  `2026-04-18.v7` should not be used for final training. After deploying v7 to
+  the VPS, reset old observations/features/predictions/model outputs and start
+  the final collection window from the corrected points.
 - The ingestion foundation uses TomTom Flow Segment Data v4, a stop-before-cap
   daily quota guard, a rolling 24-hour quota usage check, and a local active
   window of 07:00-24:00 in `Africa/Cairo`.
@@ -639,6 +632,9 @@ The following items remain open:
   implementation terminology such as model artifacts, feature snapshots,
   backend storage, and provider/database names; those details stay in code and
   documentation, not the live app copy.
+- The Guidance page is no longer a dynamic insights board. It is a static user
+  guide explaining how to use each page, what congestion levels mean, what
+  improving/stable/worsening/uncertain mean, and how to use the app daily.
 - Scenario definitions are stored in `lib/scenarios/definitions.json` so the
   Python SUMO runner and TypeScript APIs use the same baseline, disruption, and
   mitigation scenario set.
@@ -651,6 +647,14 @@ The following items remain open:
 - CI is implemented with GitHub Actions and runs install, Prisma generation,
   migration deploy, seeding, typecheck, lint, tests, Python syntax checks, and
   production build.
+- `README.md` now documents the product scope, architecture, stack, commands,
+  VPS operation, API checks, scenario pipeline, testing, CI, and demo flow.
+- `docs/RUNBOOK.md` is the VPS-first operating guide for health checks,
+  deployment, full data refresh, prediction refresh, scenario refresh, private
+  SSH-tunneled app startup, API verification, backups, and troubleshooting.
+- `docs/FREE_PUBLIC_DEPLOYMENT.md` records the free public deployment options
+  and documents why an Always Free VM is the realistic replacement for a paid
+  VPS under the current SQLite, scheduler, Python, and SUMO architecture.
 
 ## Risks and mitigations
 
@@ -705,10 +709,12 @@ Current working setup commands:
 - Run tests: `npm test`
 - Build production app: `npm run build`
 - Open Prisma Studio: `npx prisma studio`
+- Full VPS operating guide: `docs/RUNBOOK.md`
+- Free public deployment options: `docs/FREE_PUBLIC_DEPLOYMENT.md`
 
 Still pending:
 
-- Final QA, screenshots, and release documentation
+- Final QA and actual screenshot capture from the VPS-backed app
 
 SUMO dependency:
 
