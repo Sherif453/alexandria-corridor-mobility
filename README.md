@@ -8,8 +8,8 @@ Victoria -> Sidi Gaber -> Raml (Mahattet El Raml)
 
 The system collects live corridor traffic data, stores it in SQLite, builds
 time-safe machine learning features, trains a real congestion model, serves
-15-minute congestion predictions through the app, and compares baseline,
-disruption, and mitigation scenarios with SUMO.
+15-minute congestion predictions through the app, and compares baseline plus
+four realistic traffic scenarios with SUMO.
 
 This is not a mock dashboard. The production data path is:
 
@@ -47,7 +47,8 @@ Core questions answered:
 - What is happening on the corridor now?
 - What congestion level is expected in the next 15 minutes?
 - Which monitored areas are improving, stable, worsening, or uncertain?
-- How do normal operation, a lane reduction, and a mitigation plan compare?
+- How would realistic disruptions or a mitigation plan change congestion if they
+  happened now?
 
 ## Stack
 
@@ -137,6 +138,11 @@ INGEST_ACTIVE_END_HOUR_LOCAL="24"
 INGEST_DAILY_REQUEST_CAP="2450"
 INGEST_REQUEST_TIMEOUT_MS="10000"
 INGEST_MAX_RETRIES="2"
+BACKEND_API_BASE_URL=""
+BACKEND_API_SECRET=""
+BACKEND_API_TIMEOUT_MS="8000"
+API_REQUIRE_BACKEND_SECRET="false"
+BACKEND_PROXY_ADMIN_REFRESH_ENABLED="false"
 ADMIN_REFRESH_ENABLED="false"
 ADMIN_REFRESH_MAX_SECONDS="420"
 ```
@@ -225,12 +231,6 @@ For scenario refresh:
 
 ```bash
 npm run scenarios:run
-```
-
-For free public deployment options, see:
-
-```text
-docs/FREE_PUBLIC_DEPLOYMENT.md
 ```
 
 ## VPS Background Jobs

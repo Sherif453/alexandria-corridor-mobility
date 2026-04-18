@@ -1,11 +1,18 @@
 import { apiError, apiOk } from "@/lib/api/response";
+import { proxyApiRequest } from "@/lib/api/proxy";
 import { getHealthPayload } from "@/lib/services/health-service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const proxiedResponse = await proxyApiRequest(request);
+
+    if (proxiedResponse) {
+      return proxiedResponse;
+    }
+
     const payload = await getHealthPayload();
 
     return apiOk(payload, {

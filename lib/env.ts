@@ -24,6 +24,17 @@ const envSchema = z.object({
   INGEST_DAILY_REQUEST_CAP: z.coerce.number().int().positive().default(2450),
   INGEST_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(10000),
   INGEST_MAX_RETRIES: z.coerce.number().int().min(0).max(5).default(2),
+  BACKEND_API_BASE_URL: z.string().trim().optional(),
+  BACKEND_API_SECRET: z.string().trim().optional(),
+  BACKEND_API_TIMEOUT_MS: z.coerce.number().int().positive().default(8000),
+  API_REQUIRE_BACKEND_SECRET: z
+    .enum(["true", "false", "1", "0"])
+    .default("false")
+    .transform((value) => value === "true" || value === "1"),
+  BACKEND_PROXY_ADMIN_REFRESH_ENABLED: z
+    .enum(["true", "false", "1", "0"])
+    .default("false")
+    .transform((value) => value === "true" || value === "1"),
   ADMIN_REFRESH_ENABLED: z
     .enum(["true", "false", "1", "0"])
     .default("false")

@@ -238,6 +238,7 @@ export type ScenarioSummaryPayload = {
 
 export type ScenarioListPayload = {
   generatedAtUtc: string;
+  latestTrafficTimestampUtc: string | null;
   latestVersion: string | null;
   status: "ready" | "missing";
   message: string;
@@ -246,6 +247,7 @@ export type ScenarioListPayload = {
 
 export type ScenarioDetailPayload = {
   generatedAtUtc: string;
+  latestTrafficTimestampUtc: string | null;
   latestVersion: string | null;
   scenario: ScenarioSummaryPayload;
   baseline: ScenarioSummaryPayload | null;

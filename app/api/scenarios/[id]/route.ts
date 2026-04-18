@@ -1,5 +1,6 @@
 import { ZodError } from "zod";
 
+import { proxyApiRequest } from "@/lib/api/proxy";
 import { apiError, apiOk } from "@/lib/api/response";
 import { getScenarioDetailPayload } from "@/lib/services/scenario-service";
 
@@ -14,6 +15,12 @@ type RouteContext = {
 
 export async function GET(_request: Request, context: RouteContext) {
   try {
+    const proxiedResponse = await proxyApiRequest(_request);
+
+    if (proxiedResponse) {
+      return proxiedResponse;
+    }
+
     const { id } = await context.params;
     const payload = await getScenarioDetailPayload(id);
 

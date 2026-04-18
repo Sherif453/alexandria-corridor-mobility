@@ -1,5 +1,10 @@
 import { ZodError } from "zod";
 
+import {
+  isBackendAdminRefreshProxyEnabled,
+  isBackendProxyConfigured,
+  proxyApiRequest,
+} from "@/lib/api/proxy";
 import { apiError, apiOk } from "@/lib/api/response";
 import {
   parseRefreshAction,
@@ -11,6 +16,22 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
+    if (isBackendProxyConfigured()) {
+      if (!isBackendAdminRefreshProxyEnabled()) {
+        return apiError(403, "ADMIN_REFRESH_DISABLED", "Manual refresh is disabled.", {
+          headers: {
+            "Cache-Control": "no-store",
+          },
+        });
+      }
+
+      const proxiedResponse = await proxyApiRequest(request);
+
+      if (proxiedResponse) {
+        return proxiedResponse;
+      }
+    }
+
     const body = (await request.json().catch(() => ({}))) as { action?: unknown };
     const action = parseRefreshAction(body.action);
     const payload = await runAdminRefresh(action);

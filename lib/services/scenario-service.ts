@@ -196,6 +196,32 @@ function getLatestCreatedAt(rows: ScenarioMetricRow[]) {
   }, null);
 }
 
+function buildObservationsBySegmentId(observations: Array<ObservationRow | null>) {
+  return new Map(
+    observations
+      .filter((observation): observation is NonNullable<typeof observation> =>
+        Boolean(observation),
+      )
+      .map((observation) => [observation.segmentId, observation]),
+  );
+}
+
+function getLatestObservationTimestamp(observations: Array<ObservationRow | null>) {
+  const latest = observations.reduce<Date | null>((currentLatest, observation) => {
+    if (!observation) {
+      return currentLatest;
+    }
+
+    if (!currentLatest || observation.timestampUtc > currentLatest) {
+      return observation.timestampUtc;
+    }
+
+    return currentLatest;
+  }, null);
+
+  return latest?.toISOString() ?? null;
+}
+
 function buildScenarioSummary(params: {
   definition: ScenarioDefinition;
   rows: ScenarioMetricRow[];
@@ -249,13 +275,7 @@ export async function getScenarioListPayload() {
   const latestObservations = await getLatestTrafficObservations(
     segments.map((segment) => segment.segmentId),
   );
-  const observationsBySegmentId = new Map(
-    latestObservations
-      .filter((observation): observation is NonNullable<typeof observation> =>
-        Boolean(observation),
-      )
-      .map((observation) => [observation.segmentId, observation]),
-  );
+  const observationsBySegmentId = buildObservationsBySegmentId(latestObservations);
   const latestVersion = await getLatestScenarioVersion();
   const rows = latestVersion
     ? toScenarioMetricRows(await listScenarioResultsByVersion(latestVersion))
@@ -264,6 +284,7 @@ export async function getScenarioListPayload() {
 
   return {
     generatedAtUtc: new Date().toISOString(),
+    latestTrafficTimestampUtc: getLatestObservationTimestamp(latestObservations),
     latestVersion,
     status: latestVersion ? ("ready" as const) : ("missing" as const),
     message: latestVersion
@@ -293,15 +314,21 @@ export async function getScenarioDetailPayload(scenarioId: string) {
 
   if (!latestVersion) {
     const segments = await listSegments();
+    const latestObservations = await getLatestTrafficObservations(
+      segments.map((segment) => segment.segmentId),
+    );
+    const observationsBySegmentId = buildObservationsBySegmentId(latestObservations);
+
     return {
       generatedAtUtc: new Date().toISOString(),
+      latestTrafficTimestampUtc: getLatestObservationTimestamp(latestObservations),
       latestVersion: null,
       scenario: buildScenarioSummary({
         definition,
         rows: [],
         baselineRows: [],
         segments,
-        observationsBySegmentId: new Map(),
+        observationsBySegmentId,
       }),
       baseline: null,
     };
@@ -321,19 +348,14 @@ export async function getScenarioDetailPayload(scenarioId: string) {
   const latestObservations = await getLatestTrafficObservations(
     segments.map((segment) => segment.segmentId),
   );
-  const observationsBySegmentId = new Map(
-    latestObservations
-      .filter((observation): observation is NonNullable<typeof observation> =>
-        Boolean(observation),
-      )
-      .map((observation) => [observation.segmentId, observation]),
-  );
+  const observationsBySegmentId = buildObservationsBySegmentId(latestObservations);
   const typedScenarioRows = toScenarioMetricRows(scenarioRows);
   const typedBaselineRows = toScenarioMetricRows(baselineRows);
   const baselineDefinition = getScenarioDefinition("baseline");
 
   return {
     generatedAtUtc: new Date().toISOString(),
+    latestTrafficTimestampUtc: getLatestObservationTimestamp(latestObservations),
     latestVersion,
     scenario: buildScenarioSummary({
       definition,

@@ -314,9 +314,9 @@ tables, deltas, and before/after charts.
 
 ### Guidance page
 
-This page explains how normal users should read and use the app: overview,
-live corridor, history, next-15-minute results, scenarios, congestion levels,
-and change words.
+This page explains how normal users should read and use the app: overview, live
+corridor, history, next-15-minute results, scenarios, congestion levels, and
+change words.
 
 ### Cross-page UX requirements
 
@@ -584,10 +584,10 @@ The following items remain open:
   `شارع جمال عبد الناصر` / `Gamal Abd Al Naser Street` from Victoria toward
   Raml. The final western connector keeps the PDF-required Raml endpoint even
   though the named OSM way ends east of Mahattet El Raml.
-- The coordinate correction means observations collected before
-  `2026-04-18.v7` should not be used for final training. After deploying v7 to
-  the VPS, reset old observations/features/predictions/model outputs and start
-  the final collection window from the corrected points.
+- The coordinate correction means observations collected before `2026-04-18.v7`
+  should not be used for final training. After deploying v7 to the VPS, reset
+  old observations/features/predictions/model outputs and start the final
+  collection window from the corrected points.
 - The ingestion foundation uses TomTom Flow Segment Data v4, a stop-before-cap
   daily quota guard, a rolling 24-hour quota usage check, and a local active
   window of 07:00-24:00 in `Africa/Cairo`.
@@ -627,16 +627,16 @@ The following items remain open:
 - The prediction page now includes the same corridor map pattern as the live
   corridor page, but marker colors represent expected congestion in the next
   15-minute window rather than current congestion.
-- Prediction trend language is defined as congestion-class movement:
-  improving means the forecast class is lower than the latest observed class,
-  stable means the forecast class is unchanged, and worsening means the forecast
-  class is higher. Recent speed movement is supporting context only.
+- Prediction trend language is defined as congestion-class movement: improving
+  means the forecast class is lower than the latest observed class, stable means
+  the forecast class is unchanged, and worsening means the forecast class is
+  higher. Recent speed movement is supporting context only.
 - User-facing labels use `low congestion`, `medium congestion`, and
   `high congestion` rather than standalone `Low`, `Medium`, or `High`.
 - Insights are deterministic summaries of current traffic readings, persisted
   predictions, reliability cautions, and trend state. User-facing pages avoid
-  implementation terminology such as model artifacts, feature snapshots,
-  backend storage, and provider/database names; those details stay in code and
+  implementation terminology such as model artifacts, feature snapshots, backend
+  storage, and provider/database names; those details stay in code and
   documentation, not the live app copy.
 - The Guidance page is no longer a dynamic insights board. It is a static user
   guide explaining how to use each page, what congestion levels mean, what
@@ -650,14 +650,24 @@ The following items remain open:
 - Scenario summaries now include per-segment congestion impact estimates so the
   scenario page can show the selected scenario on a map plus an area-by-area
   result list.
+- Scenario map and area results are dynamic at API request time: they start from
+  the latest live congestion labels and apply the selected scenario as "if this
+  happened now" impact logic. Stored SUMO metrics remain the auditable detailed
+  comparison from the latest scenario run.
 - Scenario headline metrics are calculated from corridor distance, current
   speeds, affected segment speed multipliers, affected lane counts, and demand
   multipliers after the SUMO run is executed. Raw SUMO metrics are preserved in
   each scenario artifact folder as `sumo-raw-metrics.json`; this avoids the
-  simple generated SUMO network collapsing all scenarios to identical trip
-  times while still keeping SUMO artifacts auditable.
-- Manual refresh is implemented as `POST /api/admin/refresh`, but it is
-  disabled by default through `ADMIN_REFRESH_ENABLED=false` because the project
+  simple generated SUMO network collapsing all scenarios to identical trip times
+  while still keeping SUMO artifacts auditable.
+- Hybrid deployment is supported without changing the product architecture:
+  Frontend is served while its API routes proxy to the VPS backend through
+  `BACKEND_API_BASE_URL`. The VPS remains the source of truth for SQLite,
+  ingestion, Python ML, predictions, and SUMO. Backend API access can be
+  restricted with `API_REQUIRE_BACKEND_SECRET=true` and the shared
+  `BACKEND_API_SECRET`.
+- Manual refresh is implemented as `POST /api/admin/refresh`, but it is disabled
+  by default through `ADMIN_REFRESH_ENABLED=false` because the project
   intentionally has no authentication.
 - CI is implemented with GitHub Actions and runs install, Prisma generation,
   migration deploy, seeding, typecheck, lint, tests, Python syntax checks, and

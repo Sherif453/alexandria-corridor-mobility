@@ -1,5 +1,6 @@
 import { ZodError } from "zod";
 
+import { proxyApiRequest } from "@/lib/api/proxy";
 import { apiError, apiOk } from "@/lib/api/response";
 import {
   getTrafficHistoryPayload,
@@ -11,6 +12,12 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {
+    const proxiedResponse = await proxyApiRequest(request);
+
+    if (proxiedResponse) {
+      return proxiedResponse;
+    }
+
     const url = new URL(request.url);
     const query = parseTrafficHistoryQuery(url.searchParams);
     const payload = await getTrafficHistoryPayload(query);

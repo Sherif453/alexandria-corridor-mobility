@@ -167,9 +167,9 @@ function ScenarioImpactPanel({ scenario }: { scenario: ScenarioSummaryPayload })
             Congestion map for: {scenario.name}
           </h3>
           <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-600">
-            Choose a scenario to see how each monitored area is expected to
-            change. The map color shows the scenario congestion level, not the
-            current live level.
+            Choose a scenario to see what would happen if it happened now. The
+            map starts from the latest live congestion level, then applies the
+            selected scenario to each monitored area.
           </p>
         </div>
         <StatusPill tone={scenario.status === "ready" ? "green" : "amber"}>
@@ -420,9 +420,14 @@ export function ScenarioComparison() {
           tone={payload.status === "ready" ? "green" : "amber"}
         />
         <MetricCard
-          label="Best comparison"
-          value="Trip time"
-          detail="Use the percent change to compare each scenario with baseline."
+          label="Live traffic used"
+          value={
+            payload.latestTrafficTimestampUtc
+              ? formatDateTime(payload.latestTrafficTimestampUtc)
+              : "No live data"
+          }
+          detail="The map and area results apply each scenario to current congestion."
+          tone={payload.latestTrafficTimestampUtc ? "green" : "amber"}
         />
       </section>
 
