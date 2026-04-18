@@ -306,7 +306,9 @@ lib/scenarios/definitions.json
 Current required scenarios:
 
 - Current corridor baseline
-- Lane reduction near Saba Pasha and Stanley
+- Lane reduction near Saba Pasha, Gleem, and Stanley
+- Sidi Gaber event traffic surge
+- Shatby to Raml curbside bottleneck
 - Managed detour and signal support
 
 The SUMO runner writes artifacts to:
@@ -358,7 +360,7 @@ Recommended demo walkthrough:
 3. Open History and show that readings are persisted over time.
 4. Open Next 15 min and explain current vs expected congestion.
 5. Open Guidance and show how a normal user should read and use the app.
-6. Open Scenarios and compare baseline, disruption, and mitigation.
+6. Open Scenarios and compare baseline with the four traffic situations.
 7. Mention the VPS ingestion timer, SQLite persistence, Python ML pipeline, and
    SUMO simulation pipeline.
 

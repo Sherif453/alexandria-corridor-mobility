@@ -56,11 +56,11 @@ export function formatCongestionLabel(label: string | null | undefined): string 
   }
 
   if (label === "Medium") {
-    return "Moderate congestion";
+    return "Medium congestion";
   }
 
   if (label === "High") {
-    return "Heavy congestion";
+    return "High congestion";
   }
 
   return "No data";

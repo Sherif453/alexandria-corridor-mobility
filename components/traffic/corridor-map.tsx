@@ -10,7 +10,15 @@ import {
 } from "@/components/traffic/format";
 
 type CorridorMapProps = {
-  segments: TrafficSegmentPayload[];
+  segments: Array<
+    Pick<
+      TrafficSegmentPayload,
+      "segmentId" | "roadName" | "latitude" | "longitude" | "order" | "observation"
+    >
+  >;
+  congestionBySegmentId?: Record<string, string | null>;
+  popupDetailBySegmentId?: Record<string, string>;
+  popupLabel?: string;
 };
 
 const markerClasses = {
@@ -20,7 +28,12 @@ const markerClasses = {
   slate: "corridor-marker corridor-marker--unknown",
 };
 
-export function CorridorMap({ segments }: CorridorMapProps) {
+export function CorridorMap({
+  segments,
+  congestionBySegmentId,
+  popupDetailBySegmentId,
+  popupLabel = "Congestion",
+}: CorridorMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const layerRef = useRef<LayerGroup | null>(null);
@@ -76,8 +89,12 @@ export function CorridorMap({ segments }: CorridorMapProps) {
       }
 
       for (const segment of locatedSegments) {
-        const label = segment.observation?.congestionLabel ?? null;
+        const label =
+          congestionBySegmentId?.[segment.segmentId] ??
+          segment.observation?.congestionLabel ??
+          null;
         const tone = getCongestionTone(label);
+        const detail = popupDetailBySegmentId?.[segment.segmentId];
         const marker = leaflet
           .marker([segment.latitude as number, segment.longitude as number], {
             icon: leaflet.divIcon({
@@ -90,7 +107,7 @@ export function CorridorMap({ segments }: CorridorMapProps) {
           .bindPopup(
             `<strong>${segment.roadName}</strong><br/>Area ${segment.order}<br/>Congestion: ${
               formatCongestionLabel(label)
-            }`,
+            }${detail ? `<br/>${popupLabel}: ${detail}` : ""}`,
           );
 
         marker.addTo(layerRef.current);
@@ -111,7 +128,7 @@ export function CorridorMap({ segments }: CorridorMapProps) {
       layerRef.current?.remove();
       layerRef.current = null;
     };
-  }, [segments]);
+  }, [segments, congestionBySegmentId, popupDetailBySegmentId, popupLabel]);
 
   useEffect(() => {
     return () => {

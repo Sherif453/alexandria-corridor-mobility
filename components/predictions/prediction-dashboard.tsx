@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { MetricCard } from "@/components/metric-card";
 import { StatusPill } from "@/components/status-pill";
+import { CorridorMap } from "@/components/traffic/corridor-map";
 import { readApi } from "@/components/traffic/api";
 import {
   formatCongestionLabel,
@@ -203,6 +204,30 @@ export function PredictionDashboard() {
       return (right.prediction?.confidence ?? 0) - (left.prediction?.confidence ?? 0);
     })
     .slice(0, 8);
+  const predictionMapSegments = latest.segments.map((segment) => ({
+    segmentId: segment.segmentId,
+    roadName: segment.roadName,
+    latitude: segment.latitude,
+    longitude: segment.longitude,
+    order: segment.order,
+    observation: null,
+  }));
+  const predictionCongestionBySegmentId = Object.fromEntries(
+    latest.segments.map((segment) => [
+      segment.segmentId,
+      segment.prediction?.predictedLabel ?? null,
+    ]),
+  );
+  const predictionPopupDetailBySegmentId = Object.fromEntries(
+    latest.segments.map((segment) => [
+      segment.segmentId,
+      `Current ${formatCongestionLabel(
+        segment.latestObservation?.congestionLabel,
+      )}; expected ${formatCongestionLabel(segment.prediction?.predictedLabel)}; sure ${formatPercent(
+        segment.prediction?.confidence,
+      )}`,
+    ]),
+  );
 
   return (
     <div className="space-y-8">
@@ -241,7 +266,7 @@ export function PredictionDashboard() {
         />
         <MetricCard
           label="Next 15 minutes"
-          value={`${highCount} high / ${mediumCount} medium`}
+          value={`${highCount} high congestion / ${mediumCount} medium congestion`}
           detail="Expected congestion levels for the coming 15-minute window."
           tone={highCount > 0 ? "red" : mediumCount > 0 ? "amber" : "green"}
         />
@@ -269,6 +294,50 @@ export function PredictionDashboard() {
           </p>
         </section>
       ) : null}
+
+      <section className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-2xl font-black text-slate-950">
+              Map of expected congestion
+            </h3>
+            <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
+              This uses the same corridor map as the live page, but each marker
+              shows the congestion level expected in the next 15 minutes.
+            </p>
+          </div>
+          <CorridorMap
+            segments={predictionMapSegments}
+            congestionBySegmentId={predictionCongestionBySegmentId}
+            popupDetailBySegmentId={predictionPopupDetailBySegmentId}
+            popupLabel="Next 15 minutes"
+          />
+        </div>
+
+        <div className="rounded-[2rem] border border-black/10 bg-white/80 p-5 shadow-sm">
+          <h3 className="text-xl font-black text-slate-950">Map colors</h3>
+          <div className="mt-5 grid gap-3">
+            <div className="rounded-3xl bg-emerald-50 p-4">
+              <StatusPill tone="green">Low congestion</StatusPill>
+              <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
+                Traffic is expected to stay close to normal movement.
+              </p>
+            </div>
+            <div className="rounded-3xl bg-amber-50 p-4">
+              <StatusPill tone="amber">Medium congestion</StatusPill>
+              <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
+                Traffic is expected to be noticeably slower than normal.
+              </p>
+            </div>
+            <div className="rounded-3xl bg-red-50 p-4">
+              <StatusPill tone="red">High congestion</StatusPill>
+              <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
+                Traffic is expected to be much slower than normal.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <div className="rounded-[2rem] border border-black/10 bg-white/80 p-5 shadow-sm">
@@ -379,19 +448,19 @@ export function PredictionDashboard() {
         <h3 className="text-xl font-black text-slate-950">What the levels mean</h3>
         <div className="mt-5 grid gap-3 md:grid-cols-3">
           <div className="rounded-3xl bg-emerald-50 p-4">
-            <StatusPill tone="green">Low</StatusPill>
+            <StatusPill tone="green">Low congestion</StatusPill>
             <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
               Traffic is moving close to its usual clear-road speed.
             </p>
           </div>
           <div className="rounded-3xl bg-amber-50 p-4">
-            <StatusPill tone="amber">Medium</StatusPill>
+            <StatusPill tone="amber">Medium congestion</StatusPill>
             <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
               Traffic is noticeably slower, so delays are more likely.
             </p>
           </div>
           <div className="rounded-3xl bg-red-50 p-4">
-            <StatusPill tone="red">High</StatusPill>
+            <StatusPill tone="red">High congestion</StatusPill>
             <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">
               Traffic is much slower than usual and should be treated as a problem area.
             </p>

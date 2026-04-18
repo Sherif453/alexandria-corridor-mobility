@@ -24,7 +24,7 @@ const mainSteps = [
   },
   {
     title: "Use scenarios for planning, not live traffic",
-    body: "Scenario results compare what may happen under normal operation, a lane reduction, and a mitigation plan. They are useful for understanding impact, not for live navigation.",
+    body: "Scenario results compare normal operation with believable disruptions and one mitigation plan. They are useful for understanding impact, not for live navigation.",
     href: "/scenarios",
     cta: "Open scenarios",
   },
@@ -32,17 +32,17 @@ const mainSteps = [
 
 const trafficLevels = [
   {
-    label: "Low",
+    label: "Low congestion",
     tone: "green" as const,
     body: "Traffic is close to normal for that monitored area.",
   },
   {
-    label: "Medium",
+    label: "Medium congestion",
     tone: "amber" as const,
     body: "Traffic is noticeably slower than normal. Check this area before relying on the route.",
   },
   {
-    label: "High",
+    label: "High congestion",
     tone: "red" as const,
     body: "Traffic is much slower than normal. Treat this as a problem area.",
   },
@@ -108,7 +108,7 @@ export default function GuidancePage() {
           <h3 className="text-2xl font-black text-slate-950">What the levels mean</h3>
           <p className="mt-3 max-w-3xl text-base leading-7 text-slate-700">
             The app compares current movement with normal movement for the same
-            monitored area. That is why &quot;Low&quot; means low congestion, not low
+            monitored area. The green level means low congestion, not low
             vehicle speed.
           </p>
           <div className="mt-5 grid gap-3 md:grid-cols-3">

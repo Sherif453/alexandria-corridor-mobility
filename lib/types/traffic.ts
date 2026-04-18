@@ -203,6 +203,18 @@ export type ScenarioMetricPayload = {
   deltaPercent: number | null;
 };
 
+export type ScenarioSegmentImpactPayload = {
+  segmentId: string;
+  roadName: string;
+  latitude: number | null;
+  longitude: number | null;
+  order: number;
+  baselineLabel: string | null;
+  scenarioLabel: string | null;
+  effect: "lighter" | "unchanged" | "heavier" | "unknown";
+  note: string;
+};
+
 export type ScenarioSummaryPayload = {
   id: string;
   name: string;
@@ -220,6 +232,7 @@ export type ScenarioSummaryPayload = {
     maxQueueLengthMeters: number | null;
     relativeTravelTimeChangePercent: number | null;
   };
+  segmentImpacts: ScenarioSegmentImpactPayload[];
   metrics: ScenarioMetricPayload[];
 };
 

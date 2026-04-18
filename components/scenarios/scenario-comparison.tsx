@@ -5,7 +5,12 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 import { MetricCard } from "@/components/metric-card";
 import { StatusPill } from "@/components/status-pill";
 import { readApi } from "@/components/traffic/api";
-import { formatDateTime } from "@/components/traffic/format";
+import { CorridorMap } from "@/components/traffic/corridor-map";
+import {
+  formatCongestionLabel,
+  formatDateTime,
+  getCongestionTone,
+} from "@/components/traffic/format";
 import type {
   ScenarioListPayload,
   ScenarioMetricPayload,
@@ -18,9 +23,16 @@ const typeTone = {
   mitigation: "amber",
 } as const;
 
+const effectTone = {
+  lighter: "green",
+  unchanged: "slate",
+  heavier: "red",
+  unknown: "amber",
+} as const;
+
 function formatMetricValue(metric: ScenarioMetricPayload): string {
   if (metric.unit === "seconds") {
-    return `${Math.round(metric.value)} sec`;
+    return formatMinutesFromSeconds(metric.value);
   }
 
   if (metric.unit === "meters") {
@@ -34,12 +46,18 @@ function formatMetricValue(metric: ScenarioMetricPayload): string {
   return `${metric.value > 0 ? "+" : ""}${metric.value.toFixed(1)}%`;
 }
 
-function formatHeadlineSeconds(value: number | null): string {
+function formatMinutesFromSeconds(value: number | null): string {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return "No result";
   }
 
-  return `${Math.round(value)} sec`;
+  const minutes = value / 60;
+
+  if (Math.abs(minutes) < 0.05) {
+    return "0 min";
+  }
+
+  return `${minutes.toFixed(1)} min`;
 }
 
 function formatHeadlineMeters(value: number | null): string {
@@ -96,13 +114,13 @@ function ScenarioCard({ scenario }: { scenario: ScenarioSummaryPayload }) {
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <MetricCard
           label="Trip time"
-          value={formatHeadlineSeconds(scenario.headline.averageTravelTimeSeconds)}
+          value={formatMinutesFromSeconds(scenario.headline.averageTravelTimeSeconds)}
           detail={formatChange(scenario.headline.relativeTravelTimeChangePercent)}
           tone={getChangeTone(scenario.headline.relativeTravelTimeChangePercent)}
         />
         <MetricCard
           label="Delay"
-          value={formatHeadlineSeconds(scenario.headline.averageDelaySeconds)}
+          value={formatMinutesFromSeconds(scenario.headline.averageDelaySeconds)}
           detail="Average extra time per vehicle."
         />
         <MetricCard
@@ -112,6 +130,109 @@ function ScenarioCard({ scenario }: { scenario: ScenarioSummaryPayload }) {
         />
       </div>
     </article>
+  );
+}
+
+function ScenarioImpactPanel({ scenario }: { scenario: ScenarioSummaryPayload }) {
+  const mapSegments = scenario.segmentImpacts.map((impact) => ({
+    segmentId: impact.segmentId,
+    roadName: impact.roadName,
+    latitude: impact.latitude,
+    longitude: impact.longitude,
+    order: impact.order,
+    observation: null,
+  }));
+  const congestionBySegmentId = Object.fromEntries(
+    scenario.segmentImpacts.map((impact) => [impact.segmentId, impact.scenarioLabel]),
+  );
+  const popupDetailBySegmentId = Object.fromEntries(
+    scenario.segmentImpacts.map((impact) => [
+      impact.segmentId,
+      `${formatCongestionLabel(impact.baselineLabel)} now; ${formatCongestionLabel(
+        impact.scenarioLabel,
+      )} in this scenario`,
+    ]),
+  );
+  const changedImpacts = scenario.segmentImpacts.filter(
+    (impact) => impact.effect !== "unchanged" && impact.effect !== "unknown",
+  );
+  const listImpacts = changedImpacts.length > 0 ? changedImpacts : scenario.segmentImpacts;
+
+  return (
+    <section className="space-y-5 rounded-[2rem] border border-black/10 bg-white/85 p-5 shadow-sm">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <StatusPill tone={typeTone[scenario.type]}>{scenario.typeLabel}</StatusPill>
+          <h3 className="mt-4 text-2xl font-black text-slate-950">
+            Congestion map for: {scenario.name}
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-600">
+            Choose a scenario to see how each monitored area is expected to
+            change. The map color shows the scenario congestion level, not the
+            current live level.
+          </p>
+        </div>
+        <StatusPill tone={scenario.status === "ready" ? "green" : "amber"}>
+          {scenario.status === "ready" ? "scenario ready" : "run scenario pipeline"}
+        </StatusPill>
+      </div>
+
+      <CorridorMap
+        segments={mapSegments}
+        congestionBySegmentId={congestionBySegmentId}
+        popupDetailBySegmentId={popupDetailBySegmentId}
+        popupLabel="Scenario effect"
+      />
+
+      <div>
+        <h4 className="text-xl font-black text-slate-950">Area results</h4>
+        <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">
+          Areas with a changed congestion level are shown first. If nothing
+          changes, the list shows all monitored areas.
+        </p>
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          {listImpacts.map((impact) => (
+            <article
+              key={impact.segmentId}
+              className="rounded-3xl border border-black/10 bg-stone-50 p-4"
+            >
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
+                    Area {impact.order}
+                  </p>
+                  <h5 className="mt-1 text-lg font-black text-slate-950">
+                    {impact.roadName}
+                  </h5>
+                </div>
+                <StatusPill tone={effectTone[impact.effect]}>{impact.effect}</StatusPill>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                    Current
+                  </p>
+                  <StatusPill tone={getCongestionTone(impact.baselineLabel)}>
+                    {formatCongestionLabel(impact.baselineLabel)}
+                  </StatusPill>
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                    In scenario
+                  </p>
+                  <StatusPill tone={getCongestionTone(impact.scenarioLabel)}>
+                    {formatCongestionLabel(impact.scenarioLabel)}
+                  </StatusPill>
+                </div>
+              </div>
+              <p className="mt-4 text-sm font-semibold leading-6 text-slate-600">
+                {impact.note}
+              </p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -127,7 +248,7 @@ function MetricTable({ scenarios }: { scenarios: ScenarioSummaryPayload[] }) {
         <p className="font-black text-slate-950">Scenario results are not ready yet</p>
         <p className="mt-2 text-sm leading-6 text-slate-600">
           Run the scenario pipeline after installing SUMO. This page will then
-          show baseline, disruption, and mitigation results.
+          show baseline plus the four traffic situations.
         </p>
       </div>
     );
@@ -207,6 +328,7 @@ function MetricTable({ scenarios }: { scenarios: ScenarioSummaryPayload[] }) {
 export function ScenarioComparison() {
   const [payload, setPayload] = useState<ScenarioListPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string>("baseline");
   const [isPending, startTransition] = useTransition();
 
   const loadScenarios = useCallback(async () => {
@@ -254,6 +376,10 @@ export function ScenarioComparison() {
     );
   }
 
+  const selectedScenario =
+    payload.scenarios.find((scenario) => scenario.id === selectedScenarioId) ??
+    payload.scenarios[0];
+
   return (
     <div className="space-y-8">
       <section className="rounded-[2rem] border border-black/10 bg-[#15251f] p-5 text-white shadow-xl sm:rounded-[2.5rem] sm:p-8">
@@ -266,8 +392,8 @@ export function ScenarioComparison() {
               What happens if the corridor is disrupted?
             </h2>
             <p className="mt-5 max-w-3xl text-lg leading-8 text-stone-200">
-              Compare normal conditions, a lane reduction, and a mitigation plan
-              using travel time, delay, and queue length.
+              Compare normal corridor operation with four believable traffic
+              situations using travel time, delay, and queue length.
             </p>
           </div>
           <button
@@ -285,7 +411,7 @@ export function ScenarioComparison() {
         <MetricCard
           label="Scenario sets"
           value={String(payload.scenarios.length)}
-          detail="Baseline, disruption, and mitigation."
+          detail="Baseline plus four traffic situations."
         />
         <MetricCard
           label="Last run"
@@ -299,6 +425,40 @@ export function ScenarioComparison() {
           detail="Use the percent change to compare each scenario with baseline."
         />
       </section>
+
+      <section className="rounded-[2rem] border border-black/10 bg-white/80 p-5 shadow-sm">
+        <h3 className="text-xl font-black text-slate-950">Choose a scenario</h3>
+        <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
+          The selected scenario controls the map and the area-by-area results
+          below.
+        </p>
+        <div className="mt-5 grid gap-3 md:grid-cols-3">
+          {payload.scenarios.map((scenario) => (
+            <button
+              key={scenario.id}
+              type="button"
+              onClick={() => setSelectedScenarioId(scenario.id)}
+              className={`rounded-3xl border p-4 text-left transition ${
+                selectedScenario.id === scenario.id
+                  ? "border-teal-900 bg-teal-950 text-white shadow-lg"
+                  : "border-black/10 bg-stone-50 text-slate-950 hover:border-teal-900/40"
+              }`}
+            >
+              <StatusPill tone={typeTone[scenario.type]}>{scenario.typeLabel}</StatusPill>
+              <p className="mt-3 text-lg font-black">{scenario.name}</p>
+              <p
+                className={`mt-2 text-sm font-semibold leading-6 ${
+                  selectedScenario.id === scenario.id ? "text-teal-50" : "text-slate-600"
+                }`}
+              >
+                {scenario.summary}
+              </p>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <ScenarioImpactPanel scenario={selectedScenario} />
 
       <section className="grid gap-4 xl:grid-cols-3">
         {payload.scenarios.map((scenario) => (

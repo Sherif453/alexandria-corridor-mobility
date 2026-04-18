@@ -257,6 +257,8 @@ curl http://localhost:3000/api/insights
 curl http://localhost:3000/api/scenarios
 curl http://localhost:3000/api/scenarios/baseline
 curl http://localhost:3000/api/scenarios/lane-reduction
+curl http://localhost:3000/api/scenarios/sidi-gaber-event-surge
+curl http://localhost:3000/api/scenarios/shatby-raml-curbside-bottleneck
 curl http://localhost:3000/api/scenarios/detour-mitigation
 ```
 
@@ -337,4 +339,4 @@ Use this order when presenting the project:
 3. Open the history page and show observed patterns.
 4. Open the predictions page and explain the next 15-minute congestion levels.
 5. Open the guidance page and explain how users should read the app.
-6. Open the scenarios page and compare baseline, lane reduction, and mitigation.
+6. Open the scenarios page and compare baseline with the four traffic situations.

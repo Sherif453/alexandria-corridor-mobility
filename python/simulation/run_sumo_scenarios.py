@@ -24,6 +24,7 @@ DEFAULT_SCENARIO_DEFINITION_PATH = "lib/scenarios/definitions.json"
 DEFAULT_EXPORT_ROOT = "data/exports/scenarios"
 DEFAULT_FREE_FLOW_KMPH = 30.0
 MIN_SUMO_SPEED_MPS = 3.0
+URBAN_LANE_CAPACITY_VEHICLES_PER_HOUR = 700.0
 
 
 @dataclass(frozen=True)
@@ -495,7 +496,79 @@ def average(values: list[float]) -> float:
   return sum(values) / len(values)
 
 
-def parse_metrics(paths: dict[str, Path]) -> dict[str, float]:
+def get_current_speed_kmph(segment: Segment) -> float:
+  if segment.latest_speed and segment.latest_speed > 0:
+    return float(segment.latest_speed)
+
+  return get_free_flow_kmph(segment)
+
+
+def get_scenario_edge_speed_kmph(
+  scenario: ScenarioDefinition,
+  segment: Segment,
+) -> float:
+  speed_kmph = get_current_speed_kmph(segment)
+
+  if segment.segment_id in scenario.affected_segment_ids:
+    speed_kmph *= scenario.affected_speed_multiplier
+
+  return max(MIN_SUMO_SPEED_MPS * 3.6, speed_kmph)
+
+
+def get_scenario_lane_count(scenario: ScenarioDefinition, segment: Segment) -> int:
+  if segment.segment_id in scenario.affected_segment_ids and scenario.affected_lane_count:
+    return max(1, scenario.affected_lane_count)
+
+  return 2
+
+
+def calculate_modeled_metrics(
+  scenario: ScenarioDefinition,
+  segments: list[Segment],
+  duration_seconds: int,
+  vehicles_per_hour: int,
+) -> dict[str, float]:
+  travel_time_seconds = 0.0
+  free_flow_time_seconds = 0.0
+  max_pressure = 0.0
+
+  demand_vehicles_per_hour = vehicles_per_hour * scenario.demand_multiplier
+
+  for index in range(len(segments) - 1):
+    from_segment = segments[index]
+    to_segment = segments[index + 1]
+    length_meters = haversine_meters(from_segment, to_segment)
+    scenario_speed_mps = get_scenario_edge_speed_kmph(scenario, to_segment) / 3.6
+    free_flow_speed_mps = max(MIN_SUMO_SPEED_MPS, get_free_flow_kmph(to_segment) / 3.6)
+    lane_count = get_scenario_lane_count(scenario, to_segment)
+    edge_capacity = lane_count * URBAN_LANE_CAPACITY_VEHICLES_PER_HOUR
+
+    travel_time_seconds += length_meters / scenario_speed_mps
+    free_flow_time_seconds += length_meters / free_flow_speed_mps
+
+    if edge_capacity > 0:
+      max_pressure = max(max_pressure, demand_vehicles_per_hour / edge_capacity)
+
+  total_vehicle_count = max(
+    1.0,
+    round((vehicles_per_hour * duration_seconds / 3600) * scenario.demand_multiplier),
+  )
+  pressure_delay_seconds = max(0.0, max_pressure - 1.0) * duration_seconds * 0.18
+  average_delay_seconds = max(0.0, travel_time_seconds - free_flow_time_seconds) + pressure_delay_seconds
+  average_waiting_time_seconds = max(0.0, max_pressure - 1.0) * duration_seconds * 0.08
+  max_queue_length_meters = max(0.0, max_pressure - 1.0) * 180.0
+  completed_vehicle_count = total_vehicle_count / max(1.0, max_pressure)
+
+  return {
+    "average_travel_time_seconds": travel_time_seconds + pressure_delay_seconds,
+    "average_delay_seconds": average_delay_seconds,
+    "average_waiting_time_seconds": average_waiting_time_seconds,
+    "max_queue_length_meters": max_queue_length_meters,
+    "completed_vehicle_count": completed_vehicle_count,
+  }
+
+
+def parse_sumo_metrics(paths: dict[str, Path]) -> dict[str, float]:
   trip_tree = ET.parse(paths["tripinfo"])
   trips = trip_tree.getroot().findall("tripinfo")
 
@@ -639,7 +712,17 @@ def main() -> None:
       vehicles_per_hour=args.vehicles_per_hour,
     )
     run_sumo(netconvert_binary, sumo_binary, paths, args.duration_seconds)
-    metrics = parse_metrics(paths)
+    sumo_metrics = parse_sumo_metrics(paths)
+    metrics = calculate_modeled_metrics(
+      scenario=definition,
+      segments=segments,
+      duration_seconds=args.duration_seconds,
+      vehicles_per_hour=args.vehicles_per_hour,
+    )
+    (artifact_dir / "sumo-raw-metrics.json").write_text(
+      json.dumps(sumo_metrics, indent=2, sort_keys=True),
+      encoding="utf-8",
+    )
     runs.append(ScenarioRun(definition=definition, artifact_dir=artifact_dir, metrics=metrics))
 
   baseline_travel_time = runs[0].metrics["average_travel_time_seconds"]

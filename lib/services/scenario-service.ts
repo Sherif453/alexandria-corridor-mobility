@@ -16,6 +16,8 @@ import {
   type ScenarioMetricPayload,
   type ScenarioMetricRow,
 } from "@/lib/scenarios/metrics";
+import { listSegments } from "@/lib/repositories/segment-repository";
+import { getLatestTrafficObservations } from "@/lib/repositories/traffic-observation-repository";
 
 const scenarioIdSchema = z
   .string()
@@ -26,6 +28,17 @@ type ScenarioNotes = {
   artifactPath?: unknown;
   durationSeconds?: unknown;
 };
+
+type SegmentRow = Awaited<ReturnType<typeof listSegments>>[number];
+type ObservationRow = Awaited<ReturnType<typeof getLatestTrafficObservations>>[number];
+
+const congestionScores: Record<string, number> = {
+  Low: 0,
+  Medium: 1,
+  High: 2,
+};
+
+const congestionLabels = ["Low", "Medium", "High"] as const;
 
 function parseNotes(notes: string | null): ScenarioNotes {
   if (!notes) {
@@ -49,6 +62,117 @@ function mapScenarioType(type: ScenarioDefinition["type"]) {
   }
 
   return "Mitigation";
+}
+
+function getObservationLabel(observation: ObservationRow): string | null {
+  return observation?.congestionLabel ?? null;
+}
+
+function scoreToLabel(score: number): string {
+  return congestionLabels[Math.min(Math.max(Math.round(score), 0), 2)];
+}
+
+function getEffect(scoreDelta: number) {
+  if (scoreDelta > 0) {
+    return "heavier" as const;
+  }
+
+  if (scoreDelta < 0) {
+    return "lighter" as const;
+  }
+
+  return "unchanged" as const;
+}
+
+function getScenarioScoreDelta(params: {
+  definition: ScenarioDefinition;
+  segment: SegmentRow;
+  allSegments: SegmentRow[];
+}) {
+  if (params.definition.type === "baseline") {
+    return 0;
+  }
+
+  const affectedOrders = params.allSegments
+    .filter((segment) => params.definition.affectedSegmentIds.includes(segment.segmentId))
+    .map((segment) => segment.sortOrder);
+  const directlyAffected = params.definition.affectedSegmentIds.includes(
+    params.segment.segmentId,
+  );
+  const nearestAffectedDistance =
+    affectedOrders.length > 0
+      ? Math.min(
+          ...affectedOrders.map((affectedOrder) =>
+            Math.abs(params.segment.sortOrder - affectedOrder),
+          ),
+        )
+      : Number.POSITIVE_INFINITY;
+
+  if (params.definition.type === "disruption") {
+    if (directlyAffected) {
+      return params.definition.affectedSpeedMultiplier <= 0.5 ? 2 : 1;
+    }
+
+    return nearestAffectedDistance <= 2 ? 1 : 0;
+  }
+
+  if (directlyAffected) {
+    return params.definition.affectedSpeedMultiplier <= 0.7 ? 1 : 0;
+  }
+
+  return 0;
+}
+
+function buildScenarioSegmentImpacts(params: {
+  definition: ScenarioDefinition;
+  segments: SegmentRow[];
+  observationsBySegmentId: Map<string, ObservationRow>;
+}) {
+  return params.segments.map((segment) => {
+    const observationLabel = getObservationLabel(
+      params.observationsBySegmentId.get(segment.segmentId) ?? null,
+    );
+    const baselineScore = observationLabel ? congestionScores[observationLabel] : undefined;
+
+    if (baselineScore === undefined) {
+      return {
+        segmentId: segment.segmentId,
+        roadName: segment.roadName,
+        latitude: segment.latitude,
+        longitude: segment.longitude,
+        order: segment.sortOrder,
+        baselineLabel: null,
+        scenarioLabel: null,
+        effect: "unknown" as const,
+        note: "No recent congestion reading is available for this area.",
+      };
+    }
+
+    const scoreDelta = getScenarioScoreDelta({
+      definition: params.definition,
+      segment,
+      allSegments: params.segments,
+    });
+    const scenarioLabel = scoreToLabel(baselineScore + scoreDelta);
+    const effect = getEffect(congestionScores[scenarioLabel] - baselineScore);
+
+    return {
+      segmentId: segment.segmentId,
+      roadName: segment.roadName,
+      latitude: segment.latitude,
+      longitude: segment.longitude,
+      order: segment.sortOrder,
+      baselineLabel: observationLabel,
+      scenarioLabel,
+      effect,
+      note:
+        effect === "heavier"
+          ? "This area is expected to become more congested under the selected scenario."
+          : effect === "lighter"
+            ? "This area is expected to become less congested under the selected scenario."
+            : "This area is expected to stay close to its current congestion level.",
+    };
+  });
 }
 
 function toScenarioMetricRows(rows: Awaited<ReturnType<typeof listScenarioResultsByVersion>>) {
@@ -76,6 +200,8 @@ function buildScenarioSummary(params: {
   definition: ScenarioDefinition;
   rows: ScenarioMetricRow[];
   baselineRows: ScenarioMetricRow[];
+  segments: SegmentRow[];
+  observationsBySegmentId: Map<string, ObservationRow>;
 }) {
   const metrics = params.rows
     .map((row) => buildScenarioMetricPayload(row, params.baselineRows))
@@ -105,6 +231,11 @@ function buildScenarioSummary(params: {
       maxQueueLengthMeters: maxQueueLength,
       relativeTravelTimeChangePercent: relativeChange,
     },
+    segmentImpacts: buildScenarioSegmentImpacts({
+      definition: params.definition,
+      segments: params.segments,
+      observationsBySegmentId: params.observationsBySegmentId,
+    }),
     metrics,
   };
 }
@@ -114,6 +245,17 @@ export function parseScenarioId(value: string): string {
 }
 
 export async function getScenarioListPayload() {
+  const segments = await listSegments();
+  const latestObservations = await getLatestTrafficObservations(
+    segments.map((segment) => segment.segmentId),
+  );
+  const observationsBySegmentId = new Map(
+    latestObservations
+      .filter((observation): observation is NonNullable<typeof observation> =>
+        Boolean(observation),
+      )
+      .map((observation) => [observation.segmentId, observation]),
+  );
   const latestVersion = await getLatestScenarioVersion();
   const rows = latestVersion
     ? toScenarioMetricRows(await listScenarioResultsByVersion(latestVersion))
@@ -132,6 +274,8 @@ export async function getScenarioListPayload() {
         definition,
         rows: rows.filter((row) => row.scenarioId === definition.id),
         baselineRows,
+        segments,
+        observationsBySegmentId,
       }),
     ),
   };
@@ -148,6 +292,7 @@ export async function getScenarioDetailPayload(scenarioId: string) {
   const latestVersion = await getLatestScenarioVersion();
 
   if (!latestVersion) {
+    const segments = await listSegments();
     return {
       generatedAtUtc: new Date().toISOString(),
       latestVersion: null,
@@ -155,12 +300,14 @@ export async function getScenarioDetailPayload(scenarioId: string) {
         definition,
         rows: [],
         baselineRows: [],
+        segments,
+        observationsBySegmentId: new Map(),
       }),
       baseline: null,
     };
   }
 
-  const [scenarioRows, baselineRows] = await Promise.all([
+  const [scenarioRows, baselineRows, segments] = await Promise.all([
     listScenarioResultsByScenario({
       scenarioVersion: latestVersion,
       scenarioId: parsedScenarioId,
@@ -169,7 +316,18 @@ export async function getScenarioDetailPayload(scenarioId: string) {
       scenarioVersion: latestVersion,
       scenarioId: "baseline",
     }),
+    listSegments(),
   ]);
+  const latestObservations = await getLatestTrafficObservations(
+    segments.map((segment) => segment.segmentId),
+  );
+  const observationsBySegmentId = new Map(
+    latestObservations
+      .filter((observation): observation is NonNullable<typeof observation> =>
+        Boolean(observation),
+      )
+      .map((observation) => [observation.segmentId, observation]),
+  );
   const typedScenarioRows = toScenarioMetricRows(scenarioRows);
   const typedBaselineRows = toScenarioMetricRows(baselineRows);
   const baselineDefinition = getScenarioDefinition("baseline");
@@ -181,12 +339,16 @@ export async function getScenarioDetailPayload(scenarioId: string) {
       definition,
       rows: typedScenarioRows,
       baselineRows: typedBaselineRows,
+      segments,
+      observationsBySegmentId,
     }),
     baseline: baselineDefinition
       ? buildScenarioSummary({
           definition: baselineDefinition,
           rows: typedBaselineRows,
           baselineRows: typedBaselineRows,
+          segments,
+          observationsBySegmentId,
         })
       : null,
   };

@@ -17,32 +17,79 @@
   },
   {
     "id": "lane-reduction",
-    "name": "Lane reduction near Saba Pasha and Stanley",
+    "name": "Lane reduction near Saba Pasha, Gleem, and Stanley",
     "type": "disruption",
     "sortOrder": 2,
-    "summary": "A partial closure reduces capacity around the Saba Pasha and Stanley area.",
+    "summary": "A partial closure reduces capacity around the Saba Pasha, Gleem, and Stanley area.",
     "assumptions": [
       "The affected area is reduced to one usable lane.",
       "Traffic demand stays at the current corridor level.",
       "Vehicle speeds are reduced only inside the affected area."
     ],
-    "affectedSegmentIds": ["alex-corridor-12", "alex-corridor-13"],
+    "affectedSegmentIds": ["alex-corridor-11", "alex-corridor-12", "alex-corridor-13"],
     "demandMultiplier": 1,
     "affectedSpeedMultiplier": 0.45,
+    "affectedLaneCount": 1
+  },
+  {
+    "id": "sidi-gaber-event-surge",
+    "name": "Sidi Gaber event traffic surge",
+    "type": "disruption",
+    "sortOrder": 3,
+    "summary": "A short event surge increases demand around Sidi Gaber, Cleopatra, and Sporting.",
+    "assumptions": [
+      "More vehicles enter the corridor near Sidi Gaber during the same time window.",
+      "All lanes stay open, but movement becomes slower around the station and nearby districts.",
+      "The pressure is strongest from Sidi Gaber through Sporting."
+    ],
+    "affectedSegmentIds": [
+      "alex-corridor-17",
+      "alex-corridor-18",
+      "alex-corridor-19",
+      "alex-corridor-20",
+      "alex-corridor-21",
+      "alex-corridor-22"
+    ],
+    "demandMultiplier": 1.28,
+    "affectedSpeedMultiplier": 0.72,
+    "affectedLaneCount": null
+  },
+  {
+    "id": "shatby-raml-curbside-bottleneck",
+    "name": "Shatby to Raml curbside bottleneck",
+    "type": "disruption",
+    "sortOrder": 4,
+    "summary": "Curbside stopping and loading reduce movement near Shatby, Azarita, and Raml.",
+    "assumptions": [
+      "Short stops, loading, or local pickup activity reduce usable road space.",
+      "The issue affects the western end of the monitored corridor near Raml.",
+      "Demand is only slightly higher, but movement slows inside the affected area."
+    ],
+    "affectedSegmentIds": [
+      "alex-corridor-29",
+      "alex-corridor-30",
+      "alex-corridor-31",
+      "alex-corridor-32",
+      "alex-corridor-33",
+      "alex-corridor-34",
+      "alex-corridor-35"
+    ],
+    "demandMultiplier": 1.08,
+    "affectedSpeedMultiplier": 0.62,
     "affectedLaneCount": 1
   },
   {
     "id": "detour-mitigation",
     "name": "Managed detour and signal support",
     "type": "mitigation",
-    "sortOrder": 3,
+    "sortOrder": 5,
     "summary": "The same disruption is paired with demand diversion and smoother movement through the affected area.",
     "assumptions": [
       "Some trips are diverted before reaching the affected area.",
       "Traffic control keeps vehicles moving more smoothly than the disruption-only case.",
       "The affected area still has reduced capacity."
     ],
-    "affectedSegmentIds": ["alex-corridor-12", "alex-corridor-13"],
+    "affectedSegmentIds": ["alex-corridor-11", "alex-corridor-12", "alex-corridor-13"],
     "demandMultiplier": 0.82,
     "affectedSpeedMultiplier": 0.65,
     "affectedLaneCount": 1

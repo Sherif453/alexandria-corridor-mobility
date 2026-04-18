@@ -366,9 +366,10 @@ dependency.
 ### Required scenarios
 
 - Baseline corridor conditions
-- Lane reduction or partial closure
-- Temporary detour or mitigation strategy
-- Optional replacement-bus or modal-shift assumption when supportable
+- Lane reduction near Saba Pasha, Gleem, and Stanley
+- Sidi Gaber event traffic surge
+- Shatby to Raml curbside bottleneck
+- Temporary detour and signal-support mitigation strategy
 
 ### Required outputs
 
@@ -623,10 +624,15 @@ The following items remain open:
   prediction page presents this as plain user guidance: current level, next
   15-minute expected level, how sure the app is, and whether each area is
   improving, stable, worsening, or uncertain.
+- The prediction page now includes the same corridor map pattern as the live
+  corridor page, but marker colors represent expected congestion in the next
+  15-minute window rather than current congestion.
 - Prediction trend language is defined as congestion-class movement:
   improving means the forecast class is lower than the latest observed class,
   stable means the forecast class is unchanged, and worsening means the forecast
   class is higher. Recent speed movement is supporting context only.
+- User-facing labels use `low congestion`, `medium congestion`, and
+  `high congestion` rather than standalone `Low`, `Medium`, or `High`.
 - Insights are deterministic summaries of current traffic readings, persisted
   predictions, reliability cautions, and trend state. User-facing pages avoid
   implementation terminology such as model artifacts, feature snapshots,
@@ -636,11 +642,20 @@ The following items remain open:
   guide explaining how to use each page, what congestion levels mean, what
   improving/stable/worsening/uncertain mean, and how to use the app daily.
 - Scenario definitions are stored in `lib/scenarios/definitions.json` so the
-  Python SUMO runner and TypeScript APIs use the same baseline, disruption, and
-  mitigation scenario set.
+  Python SUMO runner and TypeScript APIs use the same baseline plus four
+  traffic-situation scenario set.
 - Scenario simulation artifacts are preserved under
   `data/exports/scenarios/<scenario-version>/`, and only summarized metrics are
   written to SQLite.
+- Scenario summaries now include per-segment congestion impact estimates so the
+  scenario page can show the selected scenario on a map plus an area-by-area
+  result list.
+- Scenario headline metrics are calculated from corridor distance, current
+  speeds, affected segment speed multipliers, affected lane counts, and demand
+  multipliers after the SUMO run is executed. Raw SUMO metrics are preserved in
+  each scenario artifact folder as `sumo-raw-metrics.json`; this avoids the
+  simple generated SUMO network collapsing all scenarios to identical trip
+  times while still keeping SUMO artifacts auditable.
 - Manual refresh is implemented as `POST /api/admin/refresh`, but it is
   disabled by default through `ADMIN_REFRESH_ENABLED=false` because the project
   intentionally has no authentication.
@@ -726,5 +741,6 @@ SUMO dependency:
 
 - XGBoost remains optional only if it clearly beats the baseline and can be
   supported cleanly.
-- A fourth scenario remains optional only if it is relevant and supportable.
+- Further scenarios remain optional only if they are relevant, supportable, and
+  do not change the fixed corridor scope.
 - CSV or JSON export paths are useful but secondary to the required core flows.

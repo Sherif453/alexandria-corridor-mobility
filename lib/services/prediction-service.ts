@@ -24,6 +24,22 @@ const severityScore: Record<string, number> = {
   High: 2,
 };
 
+function formatCongestionForReason(label: string | null | undefined): string {
+  if (label === "Low") {
+    return "low congestion";
+  }
+
+  if (label === "Medium") {
+    return "medium congestion";
+  }
+
+  if (label === "High") {
+    return "high congestion";
+  }
+
+  return "unknown congestion";
+}
+
 function toIsoString(date: Date | null | undefined): string | null {
   return date ? date.toISOString() : null;
 }
@@ -167,14 +183,18 @@ function getTrend(params: {
   if (predictedScore > currentScore) {
     return {
       trend: "worsening",
-      reason: `Congestion is expected to increase from ${params.observation.congestionLabel} to ${params.prediction.predictedLabel}.`,
+      reason: `Congestion is expected to increase from ${formatCongestionForReason(
+        params.observation.congestionLabel,
+      )} to ${formatCongestionForReason(params.prediction.predictedLabel)}.`,
     };
   }
 
   if (predictedScore < currentScore) {
     return {
       trend: "improving",
-      reason: `Congestion is expected to decrease from ${params.observation.congestionLabel} to ${params.prediction.predictedLabel}.`,
+      reason: `Congestion is expected to decrease from ${formatCongestionForReason(
+        params.observation.congestionLabel,
+      )} to ${formatCongestionForReason(params.prediction.predictedLabel)}.`,
     };
   }
 
@@ -182,21 +202,27 @@ function getTrend(params: {
     if (params.feature.speedChangeRate < -0.15) {
       return {
         trend: "stable",
-        reason: `Congestion is expected to remain ${params.prediction.predictedLabel}. Recent speed is falling, so this area should be watched.`,
+        reason: `Congestion is expected to remain ${formatCongestionForReason(
+          params.prediction.predictedLabel,
+        )}. Recent speed is falling, so this area needs a closer look.`,
       };
     }
 
     if (params.feature.speedChangeRate > 0.15) {
       return {
         trend: "stable",
-        reason: `Congestion is expected to remain ${params.prediction.predictedLabel}. Recent speed is rising, but the level is unchanged.`,
+        reason: `Congestion is expected to remain ${formatCongestionForReason(
+          params.prediction.predictedLabel,
+        )}. Recent speed is rising, but the congestion level is unchanged.`,
       };
     }
   }
 
   return {
     trend: "stable",
-    reason: `Congestion is expected to remain ${params.prediction.predictedLabel}.`,
+    reason: `Congestion is expected to remain ${formatCongestionForReason(
+      params.prediction.predictedLabel,
+    )}.`,
   };
 }
 
