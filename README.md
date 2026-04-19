@@ -156,6 +156,9 @@ For the hybrid Vercel frontend plus VPS backend setup:
   and only set `API_REQUIRE_BACKEND_SECRET=true` after Vercel proxying is
   verified.
 - Rotate `BACKEND_API_SECRET` if it is ever exposed.
+- Vercel Git auto-deployments are disabled in `vercel.json`. Preview and
+  production deployments should come from GitHub Actions only, after the CI
+  verification job succeeds.
 
 Future environment changes should be rare:
 
@@ -390,6 +393,16 @@ GitHub Actions runs:
 
 The CI intentionally does not call TomTom and does not run SUMO simulations.
 This avoids spending API quota and keeps CI deterministic.
+
+Vercel deploys are gated by the same workflow. Non-`main` pushes create preview
+deployments only after verification passes. `main` pushes create production
+deployments only after verification passes.
+
+Required GitHub repository secrets:
+
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
 
 ## Demo Flow
 

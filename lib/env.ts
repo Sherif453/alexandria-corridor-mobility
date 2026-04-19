@@ -1,8 +1,13 @@
 import { z } from "zod";
 
+const optionalNonEmptyString = z.preprocess(
+  (value) => (value === "" ? undefined : value),
+  z.string().min(1).optional(),
+);
+
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
-  TOMTOM_API_KEY: z.string().min(1).optional(),
+  TOMTOM_API_KEY: optionalNonEmptyString,
   TOMTOM_BASE_URL: z.url().default("https://api.tomtom.com"),
   TOMTOM_FLOW_VERSION: z.coerce.number().int().positive().default(4),
   TOMTOM_FLOW_STYLE: z.enum(["absolute", "relative"]).default("absolute"),

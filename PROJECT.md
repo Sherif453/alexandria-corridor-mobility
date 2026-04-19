@@ -633,6 +633,10 @@ The following items remain open:
 - CI is implemented with GitHub Actions and runs install, Prisma generation,
   migration deploy, seeding, typecheck, lint, tests, Python syntax checks, and
   production build.
+- Vercel Git auto-deployments are disabled through `vercel.json`. GitHub
+  Actions publishes preview deployments for non-`main` pushes and production
+  deployments for `main` only after the verification job passes, using
+  `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` repository secrets.
 - `README.md` now documents the product scope, architecture, stack, commands,
   VPS operation, hybrid deployment variables, automated timers, API checks,
   scenario pipeline, testing, CI, and demo flow.

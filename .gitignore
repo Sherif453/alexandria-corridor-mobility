@@ -17,3 +17,5 @@ prisma/dev.db
 
 # Logs
 *.log
+.vercel/
+.env*.local
