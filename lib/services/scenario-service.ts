@@ -234,9 +234,14 @@ function buildScenarioSummary(params: {
     .map((row) => buildScenarioMetricPayload(row, params.baselineRows))
     .filter((metric): metric is ScenarioMetricPayload => Boolean(metric));
   const notes = parseNotes(params.rows[0]?.notes ?? null);
+  const affectedAreaNames = params.segments
+    .filter((segment) => params.definition.affectedSegmentIds.includes(segment.segmentId))
+    .sort((left, right) => left.sortOrder - right.sortOrder)
+    .map((segment) => segment.roadName);
   const relativeChange = getMetricValue(metrics, "relative_travel_time_change_percent");
   const averageTravelTime = getMetricValue(metrics, "average_travel_time_seconds");
   const averageDelay = getMetricValue(metrics, "average_delay_seconds");
+  const corridorPressure = getMetricValue(metrics, "corridor_pressure_percent");
   const maxQueueLength = getMetricValue(metrics, "max_queue_length_meters");
 
   return {
@@ -246,6 +251,7 @@ function buildScenarioSummary(params: {
     typeLabel: mapScenarioType(params.definition.type),
     summary: params.definition.summary,
     assumptions: params.definition.assumptions,
+    affectedAreaNames,
     status: metrics.length > 0 ? ("ready" as const) : ("missing" as const),
     artifactPath:
       typeof notes.artifactPath === "string" ? notes.artifactPath : null,
@@ -255,6 +261,7 @@ function buildScenarioSummary(params: {
     headline: {
       averageTravelTimeSeconds: averageTravelTime,
       averageDelaySeconds: averageDelay,
+      corridorPressurePercent: corridorPressure,
       maxQueueLengthMeters: maxQueueLength,
       relativeTravelTimeChangePercent: relativeChange,
     },

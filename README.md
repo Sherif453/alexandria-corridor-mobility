@@ -352,7 +352,14 @@ Current required scenarios:
 - Lane reduction near Saba Pasha, Gleem, and Stanley
 - Sidi Gaber event traffic surge
 - Shatby to Raml curbside bottleneck
-- Managed detour and signal support
+- Managed detour for the Saba Pasha bottleneck
+
+The scenario page shows affected areas explicitly. `Vehicles modeled` is stored
+as `modeled_vehicle_count`; it is the size of the scenario demand, not a success
+score, so demand-surge scenarios can include more vehicles than the baseline.
+Queue and stopped-time rows are not shown in the product because the current
+generated corridor network does not model signalized intersections strongly
+enough for those values to be reliable.
 
 The SUMO runner writes artifacts to:
 

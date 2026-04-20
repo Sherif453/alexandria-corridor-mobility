@@ -235,6 +235,7 @@ export type ScenarioSummaryPayload = {
   typeLabel: string;
   summary: string;
   assumptions: string[];
+  affectedAreaNames: string[];
   status: "ready" | "missing";
   artifactPath: string | null;
   durationSeconds: number | null;
@@ -242,6 +243,7 @@ export type ScenarioSummaryPayload = {
   headline: {
     averageTravelTimeSeconds: number | null;
     averageDelaySeconds: number | null;
+    corridorPressurePercent: number | null;
     maxQueueLengthMeters: number | null;
     relativeTravelTimeChangePercent: number | null;
   };

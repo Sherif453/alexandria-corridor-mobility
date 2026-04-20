@@ -44,7 +44,19 @@ function formatMetricValue(metric: ScenarioMetricPayload): string {
     return `${Math.round(metric.value)}`;
   }
 
-  return `${metric.value > 0 ? "+" : ""}${metric.value.toFixed(1)}%`;
+  if (metric.name === "relative_travel_time_change_percent") {
+    return `${metric.value > 0 ? "+" : ""}${metric.value.toFixed(1)}%`;
+  }
+
+  return `${metric.value.toFixed(1)}%`;
+}
+
+function formatPercentValue(value: number | null): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return "No result";
+  }
+
+  return `${Math.round(value)}%`;
 }
 
 function formatMinutesFromSeconds(value: number | null): string {
@@ -59,14 +71,6 @@ function formatMinutesFromSeconds(value: number | null): string {
   }
 
   return `${minutes.toFixed(1)} min`;
-}
-
-function formatHeadlineMeters(value: number | null): string {
-  if (typeof value !== "number" || !Number.isFinite(value)) {
-    return "No result";
-  }
-
-  return `${Math.round(value)} m`;
 }
 
 function formatChange(value: number | null): string {
@@ -95,6 +99,16 @@ function getChangeTone(value: number | null) {
   }
 
   return "amber" as const;
+}
+
+function formatAffectedAreas(scenario: ScenarioSummaryPayload): string {
+  const affectedAreaNames = scenario.affectedAreaNames ?? [];
+
+  if (affectedAreaNames.length === 0) {
+    return "Whole corridor baseline";
+  }
+
+  return affectedAreaNames.join(", ");
 }
 
 function getLatestScenarioRunUtc(scenarios: ScenarioSummaryPayload[]): string | null {
@@ -126,6 +140,9 @@ function ScenarioCard({ scenario }: { scenario: ScenarioSummaryPayload }) {
         </StatusPill>
       </div>
       <p className="mt-4 text-sm leading-6 text-slate-700">{scenario.summary}</p>
+      <p className="mt-3 rounded-2xl bg-stone-50 p-3 text-xs font-bold leading-5 text-slate-600">
+        Areas affected: {formatAffectedAreas(scenario)}
+      </p>
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <MetricCard
           label="Trip time"
@@ -139,9 +156,18 @@ function ScenarioCard({ scenario }: { scenario: ScenarioSummaryPayload }) {
           detail="Average extra time per vehicle."
         />
         <MetricCard
-          label="Longest queue"
-          value={formatHeadlineMeters(scenario.headline.maxQueueLengthMeters)}
-          detail="Largest queue during the test."
+          label="Demand pressure"
+          value={formatPercentValue(scenario.headline.corridorPressurePercent)}
+          detail="How hard this scenario pushes the busiest affected area."
+          tone={
+            scenario.headline.corridorPressurePercent === null
+              ? "default"
+              : scenario.headline.corridorPressurePercent >= 100
+                ? "red"
+                : scenario.headline.corridorPressurePercent >= 75
+                  ? "amber"
+                  : "green"
+          }
         />
       </div>
     </article>
@@ -193,6 +219,9 @@ function ScenarioImpactPanel({
             corridor. The map starts from{" "}
             {liveWindow.isActiveNow ? "the latest live congestion level" : "the latest saved congestion level"}
             , then applies the selected scenario to each monitored area.
+          </p>
+          <p className="mt-3 rounded-2xl bg-stone-50 p-3 text-xs font-bold leading-5 text-slate-600">
+            Areas affected: {formatAffectedAreas(scenario)}
           </p>
         </div>
         <StatusPill tone={scenario.status === "ready" ? "green" : "amber"}>
@@ -282,8 +311,9 @@ function MetricTable({ scenarios }: { scenarios: ScenarioSummaryPayload[] }) {
       <div className="border-b border-black/10 p-5">
         <h3 className="text-xl font-black text-slate-950">Detailed comparison</h3>
         <p className="mt-1 text-sm text-slate-600">
-          Lower trip time, delay, and queue length are better. More completed
-          vehicles are better.
+          Lower trip time, delay, and demand pressure are better. Vehicles
+          modeled is the scenario size, so surge scenarios can include more
+          vehicles than the baseline.
         </p>
       </div>
       <div className="grid gap-3 p-4 md:hidden">

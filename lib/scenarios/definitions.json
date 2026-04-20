@@ -80,14 +80,14 @@
   },
   {
     "id": "detour-mitigation",
-    "name": "Managed detour and signal support",
+    "name": "Managed detour for the Saba Pasha bottleneck",
     "type": "mitigation",
     "sortOrder": 5,
-    "summary": "The same disruption is paired with demand diversion and smoother movement through the affected area.",
+    "summary": "A response plan for the Saba Pasha, Gleem, and Stanley lane-reduction case.",
     "assumptions": [
-      "Some trips are diverted before reaching the affected area.",
-      "Traffic control keeps vehicles moving more smoothly than the disruption-only case.",
-      "The affected area still has reduced capacity."
+      "This is not a separate random event; it is a mitigation plan for the Saba Pasha, Gleem, and Stanley lane-reduction scenario.",
+      "Some trips are diverted before reaching Saba Pasha, Gleem, and Stanley.",
+      "Traffic control keeps vehicles moving better than the lane-reduction-only case, but the affected area still has reduced capacity."
     ],
     "affectedSegmentIds": ["alex-corridor-11", "alex-corridor-12", "alex-corridor-13"],
     "demandMultiplier": 0.82,

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   buildScenarioMetricPayload,
   getMetricValue,
+  getScenarioMetricDefinition,
   type ScenarioMetricRow,
 } from "@/lib/scenarios/metrics";
 
@@ -49,4 +50,12 @@ test("scenario metric helper reads values by metric name", () => {
 
   assert.equal(getMetricValue(metrics, "average_delay_seconds"), 12);
   assert.equal(getMetricValue(metrics, "missing"), null);
+});
+
+test("scenario metrics expose supported user-facing measures", () => {
+  assert.equal(getScenarioMetricDefinition("corridor_pressure_percent")?.label, "Demand pressure");
+  assert.equal(getScenarioMetricDefinition("modeled_vehicle_count")?.label, "Vehicles modeled");
+  assert.equal(getScenarioMetricDefinition("completed_vehicle_count"), null);
+  assert.equal(getScenarioMetricDefinition("average_waiting_time_seconds"), null);
+  assert.equal(getScenarioMetricDefinition("max_queue_length_meters"), null);
 });

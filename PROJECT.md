@@ -383,8 +383,11 @@ Scenario summaries are stored in `scenario_results`, and scenario data is
 exposed through the scenario API routes and the frontend comparison page. The
 current implementation generates a SUMO PlainXML network from the fixed
 route-aligned monitored points, converts it with `netconvert`, runs `sumo`, and
-extracts trip time, delay, stopped time, queue length, completed vehicles, and
-relative travel-time change.
+extracts trip time, delay, demand pressure, vehicles modeled, and relative
+travel-time change for the user-facing comparison. Raw stopped-time and queue
+outputs remain auditable artifacts, but they are not shown as product metrics
+because the current generated corridor network does not model signalized
+intersection queues strongly enough for those values to be reliable.
 
 ## Quota strategy
 
@@ -611,6 +614,10 @@ The following items remain open:
   each scenario artifact folder as `sumo-raw-metrics.json`; this avoids the
   simple generated SUMO network collapsing all scenarios to identical trip times
   while still keeping SUMO artifacts auditable.
+- The scenario page exposes affected area names and labels vehicle counts as
+  `Vehicles modeled` from `modeled_vehicle_count`, not completed-throughput
+  success. This avoids misleading comparisons when disruption scenarios
+  intentionally assume higher demand than the baseline.
 - Hybrid deployment is supported without changing the product architecture:
   Frontend is served while its API routes proxy to the VPS backend through
   `BACKEND_API_BASE_URL`. The VPS remains the source of truth for SQLite,
