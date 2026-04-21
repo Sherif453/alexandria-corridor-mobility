@@ -66,7 +66,7 @@ function mergeCounts(points: AggregatedTrafficHistoryPoint[]) {
   }, {});
 }
 
-function buildCorridorBuckets(history: TrafficHistoryPayload): CorridorBucket[] {
+export function buildCorridorBuckets(history: TrafficHistoryPayload): CorridorBucket[] {
   const aggregatedPoints = history.series.filter(isAggregatedPoint);
   const buckets = aggregatedPoints.reduce<Map<string, AggregatedTrafficHistoryPoint[]>>(
     (bucketMap, point) => {
@@ -95,6 +95,7 @@ function TrendBars({ buckets }: { buckets: CorridorBucket[] }) {
     1,
     ...buckets.map((bucket) => bucket.averageSpeed ?? 0).filter(Number.isFinite),
   );
+  const roundedMaxSpeed = Math.max(10, Math.ceil(maxSpeed / 5) * 5);
 
   if (buckets.length === 0) {
     return (
@@ -118,43 +119,64 @@ function TrendBars({ buckets }: { buckets: CorridorBucket[] }) {
         </div>
         <StatusPill tone="slate">{buckets.length} periods</StatusPill>
       </div>
-      <div className="mt-6 flex h-72 items-end gap-2 overflow-x-auto rounded-3xl bg-stone-100 p-4">
-        {buckets.map((bucket) => {
-          const height = `${Math.max(6, ((bucket.averageSpeed ?? 0) / maxSpeed) * 100)}%`;
-          const tone = getCongestionTone(bucket.dominantClass);
-          const barColor =
-            tone === "green"
-              ? "bg-emerald-700"
-              : tone === "amber"
-                ? "bg-amber-500"
-                : tone === "red"
-                  ? "bg-red-700"
-                  : "bg-slate-500";
-
-          return (
-            <div
-              key={bucket.bucketStartUtc}
-              className="group flex min-w-8 flex-1 flex-col items-center justify-end gap-2"
-              title={`${formatDateTime(bucket.bucketStartUtc)} | ${formatSpeed(
-                bucket.averageSpeed,
-              )}`}
-            >
-              <div className="relative flex w-full items-end justify-center">
-                <div
-                  className={`w-full min-w-6 rounded-t-2xl ${barColor} shadow-sm transition group-hover:opacity-80`}
-                  style={{ height }}
-                />
+      <div className="mt-6 overflow-x-auto rounded-3xl bg-stone-100 p-4">
+        <div className="relative min-w-[620px]">
+          <div className="pointer-events-none absolute inset-x-0 top-0 bottom-10 flex flex-col justify-between">
+            {[roundedMaxSpeed, roundedMaxSpeed / 2, 0].map((value) => (
+              <div key={value} className="flex items-center gap-2">
+                <span className="w-10 text-right text-[10px] font-black text-slate-400">
+                  {Math.round(value)}
+                </span>
+                <span className="h-px flex-1 bg-black/5" />
               </div>
-              <span className="hidden max-w-14 rotate-[-35deg] truncate text-[10px] font-bold text-slate-500 sm:block">
-                {new Intl.DateTimeFormat("en-EG", {
-                  hour: "2-digit",
-                  day: "2-digit",
-                  timeZone: "Africa/Cairo",
-                }).format(new Date(bucket.bucketStartUtc))}
-              </span>
-            </div>
-          );
-        })}
+            ))}
+          </div>
+          <div
+            className="relative grid h-72 items-end gap-2 pl-12"
+            style={{ gridTemplateColumns: `repeat(${buckets.length}, minmax(28px, 1fr))` }}
+          >
+            {buckets.map((bucket) => {
+              const speed = bucket.averageSpeed ?? 0;
+              const height = `${Math.max(4, (speed / roundedMaxSpeed) * 100)}%`;
+              const tone = getCongestionTone(bucket.dominantClass);
+              const barColor =
+                tone === "green"
+                  ? "bg-emerald-700"
+                  : tone === "amber"
+                    ? "bg-amber-500"
+                    : tone === "red"
+                      ? "bg-red-700"
+                      : "bg-slate-500";
+
+              return (
+                <div
+                  key={bucket.bucketStartUtc}
+                  className="group flex h-full min-w-7 flex-col items-center justify-end gap-2"
+                  title={`${formatDateTime(bucket.bucketStartUtc)} | ${formatSpeed(
+                    bucket.averageSpeed,
+                  )}`}
+                >
+                  <div className="relative flex h-56 w-full items-end justify-center">
+                    <span className="absolute -top-5 hidden whitespace-nowrap text-[10px] font-black text-slate-500 group-hover:block">
+                      {formatSpeed(bucket.averageSpeed)}
+                    </span>
+                    <div
+                      className={`w-full min-w-6 rounded-t-2xl ${barColor} shadow-sm transition group-hover:opacity-80`}
+                      style={{ height }}
+                    />
+                  </div>
+                  <span className="hidden max-w-14 rotate-[-35deg] truncate text-[10px] font-bold text-slate-500 sm:block">
+                    {new Intl.DateTimeFormat("en-EG", {
+                      hour: "2-digit",
+                      day: "2-digit",
+                      timeZone: "Africa/Cairo",
+                    }).format(new Date(bucket.bucketStartUtc))}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
