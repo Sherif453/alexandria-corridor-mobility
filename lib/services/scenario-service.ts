@@ -242,7 +242,6 @@ function buildScenarioSummary(params: {
   const averageTravelTime = getMetricValue(metrics, "average_travel_time_seconds");
   const averageDelay = getMetricValue(metrics, "average_delay_seconds");
   const corridorPressure = getMetricValue(metrics, "corridor_pressure_percent");
-  const maxQueueLength = getMetricValue(metrics, "max_queue_length_meters");
 
   return {
     id: params.definition.id,
@@ -262,7 +261,6 @@ function buildScenarioSummary(params: {
       averageTravelTimeSeconds: averageTravelTime,
       averageDelaySeconds: averageDelay,
       corridorPressurePercent: corridorPressure,
-      maxQueueLengthMeters: maxQueueLength,
       relativeTravelTimeChangePercent: relativeChange,
     },
     segmentImpacts: buildScenarioSegmentImpacts({

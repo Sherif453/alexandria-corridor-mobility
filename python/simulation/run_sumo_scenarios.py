@@ -555,17 +555,12 @@ def calculate_modeled_metrics(
   )
   pressure_delay_seconds = max(0.0, max_pressure - 1.0) * duration_seconds * 0.18
   average_delay_seconds = max(0.0, travel_time_seconds - free_flow_time_seconds) + pressure_delay_seconds
-  average_waiting_time_seconds = max(0.0, max_pressure - 1.0) * duration_seconds * 0.08
-  max_queue_length_meters = max(0.0, max_pressure - 1.0) * 180.0
-  modeled_vehicle_count = total_vehicle_count / max(1.0, max_pressure)
 
   return {
     "average_travel_time_seconds": travel_time_seconds + pressure_delay_seconds,
     "average_delay_seconds": average_delay_seconds,
     "corridor_pressure_percent": max_pressure * 100.0,
-    "average_waiting_time_seconds": average_waiting_time_seconds,
-    "max_queue_length_meters": max_queue_length_meters,
-    "modeled_vehicle_count": modeled_vehicle_count,
+    "modeled_vehicle_count": total_vehicle_count,
   }
 
 

@@ -244,7 +244,6 @@ export type ScenarioSummaryPayload = {
     averageTravelTimeSeconds: number | null;
     averageDelaySeconds: number | null;
     corridorPressurePercent: number | null;
-    maxQueueLengthMeters: number | null;
     relativeTravelTimeChangePercent: number | null;
   };
   segmentImpacts: ScenarioSegmentImpactPayload[];

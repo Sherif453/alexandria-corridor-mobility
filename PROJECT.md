@@ -368,13 +368,14 @@ dependency.
 - Lane reduction near Saba Pasha, Gleem, and Stanley
 - Sidi Gaber event traffic surge
 - Shatby to Raml curbside bottleneck
-- Temporary detour and signal-support mitigation strategy
+- Managed detour for the Saba Pasha bottleneck
 
 ### Required outputs
 
 - Travel time
 - Delay
-- Queue length
+- Demand pressure
+- Vehicles modeled
 - Relative performance change
 
 ### Storage and exposure

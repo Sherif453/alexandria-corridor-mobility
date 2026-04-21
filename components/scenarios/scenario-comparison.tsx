@@ -31,6 +31,28 @@ const effectTone = {
   unknown: "amber",
 } as const;
 
+const userFacingScenarioMetricNames = [
+  "average_travel_time_seconds",
+  "average_delay_seconds",
+  "corridor_pressure_percent",
+  "modeled_vehicle_count",
+  "relative_travel_time_change_percent",
+] as const;
+
+const userFacingScenarioMetricOrder: ReadonlyMap<string, number> = new Map(
+  userFacingScenarioMetricNames.map((metricName, index) => [metricName, index]),
+);
+
+function getUserFacingScenarioMetrics(scenario: ScenarioSummaryPayload) {
+  return scenario.metrics
+    .filter((metric) => userFacingScenarioMetricOrder.has(metric.name))
+    .sort(
+      (left, right) =>
+        (userFacingScenarioMetricOrder.get(left.name) ?? Number.MAX_SAFE_INTEGER) -
+        (userFacingScenarioMetricOrder.get(right.name) ?? Number.MAX_SAFE_INTEGER),
+    );
+}
+
 function formatMetricValue(metric: ScenarioMetricPayload): string {
   if (metric.unit === "seconds") {
     return formatMinutesFromSeconds(metric.value);
@@ -102,10 +124,16 @@ function getChangeTone(value: number | null) {
 }
 
 function formatAffectedAreas(scenario: ScenarioSummaryPayload): string {
-  const affectedAreaNames = scenario.affectedAreaNames ?? [];
+  if (!Array.isArray(scenario.affectedAreaNames)) {
+    return scenario.type === "baseline"
+      ? "Whole corridor baseline"
+      : "Affected areas will appear after the scenario backend is updated.";
+  }
+
+  const affectedAreaNames = scenario.affectedAreaNames;
 
   if (affectedAreaNames.length === 0) {
-    return "Whole corridor baseline";
+    return scenario.type === "baseline" ? "Whole corridor baseline" : "No specific area listed";
   }
 
   return affectedAreaNames.join(", ");
@@ -291,7 +319,11 @@ function ScenarioImpactPanel({
 function MetricTable({ scenarios }: { scenarios: ScenarioSummaryPayload[] }) {
   const readyScenarios = scenarios.filter((scenario) => scenario.status === "ready");
   const metricNames = Array.from(
-    new Set(readyScenarios.flatMap((scenario) => scenario.metrics.map((metric) => metric.name))),
+    new Set(
+      readyScenarios.flatMap((scenario) =>
+        getUserFacingScenarioMetrics(scenario).map((metric) => metric.name),
+      ),
+    ),
   );
 
   if (readyScenarios.length === 0) {
@@ -329,7 +361,7 @@ function MetricTable({ scenarios }: { scenarios: ScenarioSummaryPayload[] }) {
               </h4>
             </div>
             <div className="mt-4 grid gap-3">
-              {scenario.metrics.map((metric) => (
+              {getUserFacingScenarioMetrics(scenario).map((metric) => (
                 <div key={metric.name} className="rounded-2xl bg-stone-50 p-3">
                   <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
                     {metric.label}
@@ -367,7 +399,7 @@ function MetricTable({ scenarios }: { scenarios: ScenarioSummaryPayload[] }) {
           <tbody>
             {metricNames.map((metricName) => {
               const firstMetric = readyScenarios
-                .flatMap((scenario) => scenario.metrics)
+                .flatMap((scenario) => getUserFacingScenarioMetrics(scenario))
                 .find((metric) => metric.name === metricName);
 
               if (!firstMetric) {
@@ -383,7 +415,9 @@ function MetricTable({ scenarios }: { scenarios: ScenarioSummaryPayload[] }) {
                     </p>
                   </td>
                   {readyScenarios.map((scenario) => {
-                    const metric = scenario.metrics.find((item) => item.name === metricName);
+                    const metric = getUserFacingScenarioMetrics(scenario).find(
+                      (item) => item.name === metricName,
+                    );
 
                     return (
                       <td key={scenario.id} className="px-4 py-4 align-top">
@@ -484,7 +518,7 @@ export function ScenarioComparison() {
             </h2>
             <p className="mt-5 max-w-3xl text-lg leading-8 text-stone-200">
               Compare normal corridor operation with four believable traffic
-              situations using travel time, delay, and queue length. Scenario
+              situations using trip time, delay, and demand pressure. Scenario
               maps use the latest saved live congestion from the daily{" "}
               {liveWindow.activeFromLocal} to midnight Cairo window.
             </p>
