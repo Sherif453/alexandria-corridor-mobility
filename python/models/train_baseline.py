@@ -12,15 +12,25 @@ import uuid
 from collections import Counter
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from itertools import product
 from pathlib import Path
 from typing import Any
+
+from prediction_policy import (
+  TARGET_LABELS,
+  apply_decision_policy,
+  build_feature_signals,
+  build_priority_metrics,
+  count_decision_results,
+  normalize_decision_policy,
+  probabilities_to_label_map,
+)
 
 
 MODEL_PIPELINE_VERSION = "model-training.v1"
 DEFAULT_FEATURE_VERSION = "features.v1"
 DEFAULT_MIN_SAMPLES = 300
 DEFAULT_MIN_DAYS_WARNING = 7.0
-TARGET_LABELS = ["Low", "Medium", "High"]
 NUMERIC_FEATURES = [
   "sort_order",
   "hour_of_day",
@@ -397,12 +407,59 @@ def predict_last_class(
   return predictions
 
 
+def get_model_classes(model: Any) -> list[str]:
+  if hasattr(model, "classes_"):
+    return list(model.classes_)
+
+  classifier = getattr(model, "named_steps", {}).get("classifier")
+
+  if classifier is not None and hasattr(classifier, "classes_"):
+    return list(classifier.classes_)
+
+  return list(TARGET_LABELS)
+
+
+def predict_probabilities(
+  model: Any,
+  records: list[FeatureRecord],
+) -> tuple[list[str], list[dict[str, float]]]:
+  classes = get_model_classes(model)
+  raw_probabilities = model.predict_proba(feature_matrix(records))
+
+  return classes, [
+    probabilities_to_label_map(classes, probability_row)
+    for probability_row in raw_probabilities
+  ]
+
+
+def apply_policy_to_records(
+  records: list[FeatureRecord],
+  probability_rows: list[dict[str, float]],
+  decision_policy: dict[str, Any] | None,
+):
+  normalized_policy = normalize_decision_policy(decision_policy)
+  decisions = [
+    apply_decision_policy(
+      probabilities=probability_rows[index],
+      signals=build_feature_signals(
+        relative_to_free_flow=record.relative_to_free_flow,
+        speed_change_rate=record.speed_change_rate,
+        incident_flag=record.incident_flag,
+      ),
+      decision_policy=normalized_policy,
+    )
+    for index, record in enumerate(records)
+  ]
+
+  return normalized_policy, decisions
+
+
 def evaluate_predictions(
   ml: dict[str, Any],
   y_true: list[str],
   y_pred: list[str],
 ) -> dict[str, Any]:
-  return {
+  metrics = {
     "accuracy": float(ml["accuracy_score"](y_true, y_pred)),
     "macroF1": float(
       ml["f1_score"](
@@ -436,6 +493,34 @@ def evaluate_predictions(
     ),
   }
 
+  metrics["priorityMetrics"] = build_priority_metrics(y_true, y_pred)
+
+  return metrics
+
+
+def evaluate_policy_predictions(
+  ml: dict[str, Any],
+  y_true: list[str],
+  decisions: list[Any],
+  decision_policy: dict[str, Any],
+) -> dict[str, Any]:
+  y_pred = [decision.label for decision in decisions]
+  metrics = evaluate_predictions(ml, y_true, y_pred)
+  selected_confidences = [
+    decision.confidence
+    for decision in decisions
+    if decision.confidence is not None
+  ]
+  metrics["decisionPolicy"] = decision_policy
+  metrics["decisionCounts"] = count_decision_results(decisions)
+  metrics["averageSelectedProbability"] = (
+    float(sum(selected_confidences) / len(selected_confidences))
+    if selected_confidences
+    else None
+  )
+
+  return metrics
+
 
 def evaluate_model(
   ml: dict[str, Any],
@@ -451,6 +536,56 @@ def evaluate_model(
     metrics["averageMaxProbability"] = float(probabilities.max(axis=1).mean())
 
   return metrics
+
+
+def tune_decision_policy(
+  ml: dict[str, Any],
+  model: Any,
+  validation_records: list[FeatureRecord],
+) -> dict[str, Any] | None:
+  if not hasattr(model, "predict_proba") or not validation_records:
+    return None
+
+  _, probability_rows = predict_probabilities(model, validation_records)
+  y_true = target_vector(validation_records)
+  non_low_thresholds = [0.22, 0.26, 0.30, 0.34, 0.38, 0.42, 0.46, 0.50]
+  high_thresholds = [0.08, 0.10, 0.12, 0.15, 0.18, 0.22, 0.26, 0.30]
+  best_policy: dict[str, Any] | None = None
+  best_metrics: dict[str, Any] | None = None
+  best_key: tuple[float, float, float, float, float] | None = None
+
+  for non_low_threshold, high_threshold in product(non_low_thresholds, high_thresholds):
+    policy = normalize_decision_policy(
+      {
+        "thresholds": {
+          "nonLow": non_low_threshold,
+          "high": high_threshold,
+        },
+      },
+    )
+    _, decisions = apply_policy_to_records(validation_records, probability_rows, policy)
+    metrics = evaluate_policy_predictions(ml, y_true, decisions, policy)
+    priority_metrics = metrics["priorityMetrics"]
+    key = (
+      float(priority_metrics["priorityScore"]),
+      float(metrics["macroF1"]),
+      float(metrics["accuracy"]),
+      float(non_low_threshold),
+      float(high_threshold),
+    )
+
+    if best_key is None or key > best_key:
+      best_key = key
+      best_policy = policy
+      best_metrics = metrics
+
+  if best_policy is None or best_metrics is None:
+    return None
+
+  return {
+    "decisionPolicy": best_policy,
+    "validationMetrics": best_metrics,
+  }
 
 
 def majority_label(records: list[FeatureRecord]) -> str:
@@ -470,6 +605,8 @@ def target_counts(records: list[FeatureRecord]) -> dict[str, int]:
 def build_warnings(
   records: list[FeatureRecord],
   train_records: list[FeatureRecord],
+  validation_records: list[FeatureRecord],
+  test_records: list[FeatureRecord],
   args: argparse.Namespace,
 ) -> list[str]:
   warnings: list[str] = []
@@ -506,9 +643,25 @@ def build_warnings(
     )
 
   train_classes = set(target_vector(train_records))
+  validation_classes = set(target_vector(validation_records))
+  test_classes = set(target_vector(test_records))
 
   if len(train_classes) < 2:
     warnings.append("Training split has fewer than two classes; model fitting is blocked.")
+
+  validation_missing = [label for label in TARGET_LABELS if label not in validation_classes]
+
+  if validation_missing:
+    warnings.append(
+      f"Validation split is missing target classes: {', '.join(validation_missing)}.",
+    )
+
+  test_missing = [label for label in TARGET_LABELS if label not in test_classes]
+
+  if test_missing:
+    warnings.append(
+      f"Test split is missing target classes: {', '.join(test_missing)}.",
+    )
 
   return warnings
 
@@ -591,7 +744,13 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
       raise ValueError("At least three labeled FeatureSnapshot rows are required.")
 
     train_records, validation_records, test_records = split_records(records)
-    warnings = build_warnings(records, train_records, args)
+    warnings = build_warnings(
+      records,
+      train_records,
+      validation_records,
+      test_records,
+      args,
+    )
 
     if len(set(target_vector(train_records))) < 2:
       raise ValueError("Training split must contain at least two target classes.")
@@ -606,6 +765,11 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
       trained_models[model_name] = model
 
     fallback_label = majority_label(train_records)
+    tuned_serving_policy = tune_decision_policy(
+      ml,
+      trained_models["random_forest"],
+      validation_records,
+    )
     naive_validation_predictions = predict_last_class(
       train_records,
       validation_records,
@@ -663,8 +827,48 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
         }
         for model_name, model in trained_models.items()
       },
+      "servingPolicy": None,
       "warnings": warnings,
     }
+
+    if tuned_serving_policy is not None:
+      decision_policy = tuned_serving_policy["decisionPolicy"]
+      _, validation_probability_rows = predict_probabilities(
+        trained_models["random_forest"],
+        validation_records,
+      )
+      _, validation_decisions = apply_policy_to_records(
+        validation_records,
+        validation_probability_rows,
+        decision_policy,
+      )
+      _, test_probability_rows = predict_probabilities(
+        trained_models["random_forest"],
+        test_records,
+      )
+      _, test_decisions = apply_policy_to_records(
+        test_records,
+        test_probability_rows,
+        decision_policy,
+      )
+      metrics["servingPolicy"] = {
+        "modelName": "random_forest",
+        "decisionPolicy": decision_policy,
+        "selectionMetric": "priorityMetrics.priorityScore",
+        "validation": evaluate_policy_predictions(
+          ml,
+          target_vector(validation_records),
+          validation_decisions,
+          decision_policy,
+        ),
+        "test": evaluate_policy_predictions(
+          ml,
+          target_vector(test_records),
+          test_decisions,
+          decision_policy,
+        ),
+      }
+
     metadata = {
       "runId": run_id,
       "modelVersion": model_version,
@@ -673,6 +877,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
       "datasetRange": dataset_range,
       "mainModel": "random_forest",
       "baselineModel": "logistic_regression",
+      "decisionPolicy": metrics["servingPolicy"]["decisionPolicy"] if metrics["servingPolicy"] else None,
       "dryRun": args.dry_run,
       "warnings": warnings,
     }
@@ -719,14 +924,36 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
           "validation": {
             "accuracy": model_metrics["validation"]["accuracy"],
             "macroF1": model_metrics["validation"]["macroF1"],
+            "priorityScore": model_metrics["validation"]["priorityMetrics"]["priorityScore"],
           },
           "test": {
             "accuracy": model_metrics["test"]["accuracy"],
             "macroF1": model_metrics["test"]["macroF1"],
+            "priorityScore": model_metrics["test"]["priorityMetrics"]["priorityScore"],
           },
         }
         for model_name, model_metrics in metrics["models"].items()
       },
+      "servingPolicy": (
+        {
+          "modelName": metrics["servingPolicy"]["modelName"],
+          "decisionPolicy": metrics["servingPolicy"]["decisionPolicy"],
+          "validation": {
+            "accuracy": metrics["servingPolicy"]["validation"]["accuracy"],
+            "macroF1": metrics["servingPolicy"]["validation"]["macroF1"],
+            "priorityScore": metrics["servingPolicy"]["validation"]["priorityMetrics"]["priorityScore"],
+            "mediumHighRecall": metrics["servingPolicy"]["validation"]["priorityMetrics"]["mediumHighRecall"],
+          },
+          "test": {
+            "accuracy": metrics["servingPolicy"]["test"]["accuracy"],
+            "macroF1": metrics["servingPolicy"]["test"]["macroF1"],
+            "priorityScore": metrics["servingPolicy"]["test"]["priorityMetrics"]["priorityScore"],
+            "mediumHighRecall": metrics["servingPolicy"]["test"]["priorityMetrics"]["mediumHighRecall"],
+          },
+        }
+        if metrics["servingPolicy"] is not None
+        else None
+      ),
       "warnings": warnings,
     }
   finally:

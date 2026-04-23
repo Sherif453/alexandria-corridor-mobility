@@ -14,6 +14,14 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from prediction_policy import (
+  apply_decision_policy,
+  build_feature_signals,
+  count_decision_results,
+  normalize_decision_policy,
+  probabilities_to_label_map,
+)
+
 
 DEFAULT_FEATURE_VERSION = "features.v1"
 DEFAULT_ARTIFACT_ROOT = "data/processed/models"
@@ -222,6 +230,30 @@ def to_optional_bool(value: Any) -> bool | None:
   return bool(value)
 
 
+def parse_model_metrics(metrics_json: str | None) -> dict[str, Any]:
+  if not metrics_json:
+    return {}
+
+  try:
+    parsed = json.loads(metrics_json)
+  except json.JSONDecodeError:
+    return {}
+
+  return parsed if isinstance(parsed, dict) else {}
+
+
+def get_model_classes(model: Any) -> list[str]:
+  if hasattr(model, "classes_"):
+    return list(model.classes_)
+
+  classifier = getattr(model, "named_steps", {}).get("classifier")
+
+  if classifier is not None and hasattr(classifier, "classes_"):
+    return list(classifier.classes_)
+
+  return []
+
+
 def get_latest_model_run(
   connection: sqlite3.Connection,
   model_version: str | None,
@@ -322,29 +354,59 @@ def predict(
   features: list[FeatureRecord],
   model_version: str,
   horizon_minutes: int,
+  decision_policy: dict[str, Any] | None,
+  decisions: list[Any] | None = None,
 ) -> list[PredictionWrite]:
   feature_rows = [feature.to_feature_row() for feature in features]
   predicted_labels = model.predict(feature_rows).tolist()
-  probabilities = model.predict_proba(feature_rows) if hasattr(model, "predict_proba") else None
   predictions: list[PredictionWrite] = []
 
   for index, feature in enumerate(features):
+    predicted_label = predicted_labels[index]
     confidence = None
 
-    if probabilities is not None:
-      confidence = float(probabilities[index].max())
+    if decisions is not None:
+      decision = decisions[index]
+      predicted_label = decision.label
+      confidence = float(decision.confidence) if decision.confidence is not None else None
 
     predictions.append(
       PredictionWrite(
         segment_id=feature.segment_id,
         timestamp_utc=feature.timestamp_utc + timedelta(minutes=horizon_minutes),
-        predicted_label=predicted_labels[index],
+        predicted_label=predicted_label,
         confidence=confidence,
         model_version=model_version,
       ),
     )
 
   return predictions
+
+
+def build_prediction_decisions(
+  model: Any,
+  features: list[FeatureRecord],
+  decision_policy: dict[str, Any] | None,
+) -> list[Any] | None:
+  if decision_policy is None or not hasattr(model, "predict_proba"):
+    return None
+
+  feature_rows = [feature.to_feature_row() for feature in features]
+  probabilities = model.predict_proba(feature_rows)
+  classes = get_model_classes(model)
+
+  return [
+    apply_decision_policy(
+      probabilities=probabilities_to_label_map(classes, probabilities[index]),
+      signals=build_feature_signals(
+        relative_to_free_flow=feature.relative_to_free_flow,
+        speed_change_rate=feature.speed_change_rate,
+        incident_flag=feature.incident_flag,
+      ),
+      decision_policy=decision_policy,
+    )
+    for index, feature in enumerate(features)
+  ]
 
 
 def write_predictions(
@@ -424,6 +486,12 @@ def main() -> None:
     model_version = model_run["version"]
     artifact_path = Path(model_run["artifactPath"])
     model_path = (root_dir / artifact_path / args.model_file).resolve()
+    model_metrics = parse_model_metrics(model_run["metricsJson"])
+    serving_policy = model_metrics.get("servingPolicy")
+    decision_policy = None
+
+    if isinstance(serving_policy, dict):
+      decision_policy = normalize_decision_policy(serving_policy.get("decisionPolicy"))
 
     if not model_path.exists():
       raise FileNotFoundError(f"Model artifact not found: {model_path}")
@@ -435,15 +503,22 @@ def main() -> None:
 
     joblib = import_joblib()
     model = joblib.load(model_path)
+    decisions = build_prediction_decisions(model, features, decision_policy)
     predictions = predict(
       model=model,
       features=features,
       model_version=model_version,
       horizon_minutes=args.horizon_minutes,
+      decision_policy=decision_policy,
+      decisions=decisions,
     )
     written = 0 if args.dry_run else write_predictions(connection, predictions, model_version)
     feature_timestamps = [feature.timestamp_utc for feature in features]
     prediction_timestamps = [prediction.timestamp_utc for prediction in predictions]
+    decision_counts = {"labels": summarize_predictions(predictions)}
+
+    if decisions is not None:
+      decision_counts = count_decision_results(decisions)
 
     print(
       json.dumps(
@@ -455,9 +530,11 @@ def main() -> None:
           "modelPath": str(model_path.relative_to(root_dir)),
           "featureVersion": args.feature_version,
           "horizonMinutes": args.horizon_minutes,
+          "decisionPolicy": decision_policy,
           "featuresScored": len(features),
           "predictionsWritten": written,
           "predictionCounts": summarize_predictions(predictions),
+          "decisionCounts": decision_counts,
           "featureRange": {
             "fromUtc": format_timestamp(min(feature_timestamps)),
             "toUtc": format_timestamp(max(feature_timestamps)),
