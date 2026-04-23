@@ -254,6 +254,19 @@ For scenario refresh:
 npm run scenarios:run
 ```
 
+One-time repair after deploying the congestion-label fix:
+
+```bash
+npm run maintenance:backfill-congestion-labels
+npm run maintenance:backfill-congestion-labels -- --apply
+npm run features:build
+npm run models:train
+npm run predictions:generate
+```
+
+The first command is a dry run. Apply the repair only after reviewing the JSON
+summary, then rebuild features, retrain the model, and regenerate predictions.
+
 ## VPS Background Jobs
 
 The VPS uses systemd timers for live collection, prediction refresh, scenario

@@ -19,6 +19,7 @@
     "scenarios:run": "python3 python/simulation/run_sumo_scenarios.py",
     "ingest:once": "TMPDIR=.tmp tsx scripts/ingest/run.ts",
     "ingest:scheduler": "TMPDIR=.tmp tsx scripts/ingest/scheduler.ts",
+    "maintenance:backfill-congestion-labels": "TMPDIR=.tmp node --import tsx scripts/maintenance/backfill-congestion-labels.ts",
     "test": "TMPDIR=.tmp node --import tsx --test tests/*.test.ts"
   },
   "keywords": [],
