@@ -237,10 +237,14 @@ def load_observations(
 def find_target_label(
   observations: list[Observation],
   current_index: int,
+  target_horizon_minutes: int,
   min_gap_minutes: int,
   max_gap_minutes: int,
 ) -> str | None:
   current_timestamp = observations[current_index].timestamp_utc
+  best_label: str | None = None
+  best_gap_delta: float | None = None
+  best_gap_minutes = -1.0
 
   for future in observations[current_index + 1:]:
     gap_minutes = (future.timestamp_utc - current_timestamp).total_seconds() / 60
@@ -249,12 +253,23 @@ def find_target_label(
       continue
 
     if gap_minutes > max_gap_minutes:
-      return None
+      break
 
-    if future.congestion_label:
-      return future.congestion_label
+    if future.congestion_label is None:
+      continue
 
-  return None
+    gap_delta = abs(gap_minutes - target_horizon_minutes)
+
+    if (
+      best_gap_delta is None
+      or gap_delta < best_gap_delta
+      or (gap_delta == best_gap_delta and gap_minutes > best_gap_minutes)
+    ):
+      best_label = future.congestion_label
+      best_gap_delta = gap_delta
+      best_gap_minutes = gap_minutes
+
+  return best_label
 
 
 def build_segment_features(
@@ -262,6 +277,7 @@ def build_segment_features(
   observations: list[Observation],
   feature_version: str,
   rolling_window: int,
+  target_horizon_minutes: int,
   min_target_gap_minutes: int,
   max_target_gap_minutes: int,
 ) -> tuple[list[FeatureRow], int]:
@@ -304,6 +320,7 @@ def build_segment_features(
     target = find_target_label(
       observations,
       index,
+      target_horizon_minutes,
       min_target_gap_minutes,
       max_target_gap_minutes,
     )
@@ -336,6 +353,7 @@ def build_features(
   observations_by_segment: dict[str, list[Observation]],
   feature_version: str,
   rolling_window: int,
+  target_horizon_minutes: int,
   min_target_gap_minutes: int,
   max_target_gap_minutes: int,
 ) -> tuple[list[FeatureRow], int]:
@@ -348,6 +366,7 @@ def build_features(
       observations=observations_by_segment.get(segment.segment_id, []),
       feature_version=feature_version,
       rolling_window=rolling_window,
+      target_horizon_minutes=target_horizon_minutes,
       min_target_gap_minutes=min_target_gap_minutes,
       max_target_gap_minutes=max_target_gap_minutes,
     )
@@ -496,6 +515,7 @@ def main() -> None:
       observations_by_segment=observations_by_segment,
       feature_version=args.feature_version,
       rolling_window=args.rolling_window,
+      target_horizon_minutes=args.target_horizon_minutes,
       min_target_gap_minutes=args.min_target_gap_minutes,
       max_target_gap_minutes=args.max_target_gap_minutes,
     )

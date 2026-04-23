@@ -9,7 +9,10 @@ import {
   getRecentFeatureSnapshotsForSegments,
 } from "@/lib/repositories/feature-snapshot-repository";
 import { getLatestModelRun } from "@/lib/repositories/model-run-repository";
-import { getLatestPredictionsForSegments } from "@/lib/repositories/prediction-repository";
+import {
+  getLatestPredictionTimestamp,
+  getPredictionsForSegmentsAtTimestamp,
+} from "@/lib/repositories/prediction-repository";
 import { listSegments } from "@/lib/repositories/segment-repository";
 import { getLatestTrafficObservations } from "@/lib/repositories/traffic-observation-repository";
 import { syncSegmentsFromDefinition } from "@/lib/services/segment-service";
@@ -21,7 +24,7 @@ import {
 } from "@/lib/time/live-window";
 
 type LatestObservation = Awaited<ReturnType<typeof getLatestTrafficObservations>>[number];
-type LatestPrediction = Awaited<ReturnType<typeof getLatestPredictionsForSegments>>[number];
+type LatestPrediction = Awaited<ReturnType<typeof getPredictionsForSegmentsAtTimestamp>>[number];
 type LatestFeature = Awaited<ReturnType<typeof getLatestFeatureSnapshotsForSegments>>[number];
 
 const severityScore: Record<string, number> = {
@@ -238,12 +241,19 @@ export async function getLatestPredictionsPayload() {
       )
       .map((observation) => [observation.segmentId, observation]),
   );
-  const predictions = modelRun
-    ? await getLatestPredictionsForSegments({
-        segmentIds,
+  const latestPredictionTimestampUtc = modelRun
+    ? await getLatestPredictionTimestamp({
         modelVersion: modelRun.version,
       })
-    : [];
+    : null;
+  const predictions =
+    modelRun && latestPredictionTimestampUtc
+      ? await getPredictionsForSegmentsAtTimestamp({
+          segmentIds,
+          modelVersion: modelRun.version,
+          timestampUtc: latestPredictionTimestampUtc,
+        })
+      : [];
   const predictionsBySegmentId = new Map(
     predictions
       .filter((prediction): prediction is NonNullable<typeof prediction> =>
@@ -251,18 +261,6 @@ export async function getLatestPredictionsPayload() {
       )
       .map((prediction) => [prediction.segmentId, prediction]),
   );
-  const latestPredictionTimestampUtc =
-    predictions.reduce<Date | null>((latest, prediction) => {
-      if (!prediction) {
-        return latest;
-      }
-
-      if (!latest || prediction.timestampUtc > latest) {
-        return prediction.timestampUtc;
-      }
-
-      return latest;
-    }, null);
   const predictedSegments = predictions.filter(Boolean).length;
   const predictionRows = predictions.filter(
     (prediction): prediction is NonNullable<typeof prediction> => Boolean(prediction),
@@ -323,12 +321,19 @@ export async function getPredictionTrendPayload() {
   const segmentIds = segments.map((segment) => segment.segmentId);
   const modelRun = await getLatestModelRun();
   const latestObservations = await getLatestTrafficObservations(segmentIds);
-  const predictions = modelRun
-    ? await getLatestPredictionsForSegments({
-        segmentIds,
+  const latestPredictionTimestampUtc = modelRun
+    ? await getLatestPredictionTimestamp({
         modelVersion: modelRun.version,
       })
-    : [];
+    : null;
+  const predictions =
+    modelRun && latestPredictionTimestampUtc
+      ? await getPredictionsForSegmentsAtTimestamp({
+          segmentIds,
+          modelVersion: modelRun.version,
+          timestampUtc: latestPredictionTimestampUtc,
+        })
+      : [];
   const latestFeatures = await getLatestFeatureSnapshotsForSegments({
     segmentIds,
     featureVersion: "features.v1",

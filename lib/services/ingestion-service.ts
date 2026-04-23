@@ -61,8 +61,8 @@ function isWithinActiveWindow(date: Date): boolean {
   );
 }
 
-function getCongestionLabel(speed: number | null, freeFlowSpeed: number | null) {
-  if (!speed || !freeFlowSpeed || freeFlowSpeed <= 0) {
+export function getCongestionLabel(speed: number | null, freeFlowSpeed: number | null) {
+  if (speed === null || freeFlowSpeed === null || freeFlowSpeed <= 0) {
     return null;
   }
 
