@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 
 import { PageShell } from "@/components/page-shell";
 import { TrafficOverview } from "@/components/traffic/traffic-overview";
-import { createPageMetadata } from "@/lib/seo";
+import { createPageMetadata, siteConfig } from "@/lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Overview",
+  title: siteConfig.name,
   description:
     "See the latest traffic status, corridor freshness, speed summary, and congestion snapshot for the Victoria to Sidi Gaber to Raml route in Alexandria.",
   path: "/",

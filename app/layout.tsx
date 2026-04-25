@@ -1,10 +1,18 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
-import { defaultMetadata } from "@/lib/seo";
+import { defaultMetadata, getSiteUrlFromHeaders } from "@/lib/seo";
 
-export const metadata: Metadata = defaultMetadata;
+export async function generateMetadata(): Promise<Metadata> {
+  const requestHeaders = await headers();
+
+  return {
+    ...defaultMetadata,
+    metadataBase: getSiteUrlFromHeaders(requestHeaders),
+  };
+}
 
 export const viewport: Viewport = {
   initialScale: 1,

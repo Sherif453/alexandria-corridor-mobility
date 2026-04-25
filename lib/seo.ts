@@ -56,6 +56,25 @@ export function getSiteUrl(): URL {
   );
 }
 
+export function getSiteUrlFromHeaders(headersLike: {
+  get(name: string): string | null | undefined;
+}): URL {
+  const forwardedHost = headersLike.get("x-forwarded-host");
+  const host = forwardedHost ?? headersLike.get("host");
+  const forwardedProto = headersLike.get("x-forwarded-proto");
+  const proto = forwardedProto ?? (host?.includes("localhost") ? "http" : "https");
+
+  if (host) {
+    const inferred = normalizeSiteUrl(`${proto}://${host}`);
+
+    if (inferred) {
+      return inferred;
+    }
+  }
+
+  return getSiteUrl();
+}
+
 function getCanonicalPath(path: string | undefined): string {
   if (!path || path === "/") {
     return "/";
@@ -93,6 +112,7 @@ export const defaultMetadata: Metadata = {
         url: SOCIAL_IMAGE_PATH,
         width: 1200,
         height: 630,
+        type: "image/png",
         alt: `${siteConfig.name} social preview`,
       },
     ],
@@ -144,6 +164,7 @@ export function createPageMetadata({
           url: SOCIAL_IMAGE_PATH,
           width: 1200,
           height: 630,
+          type: "image/png",
           alt: `${siteConfig.name} social preview`,
         },
       ],
