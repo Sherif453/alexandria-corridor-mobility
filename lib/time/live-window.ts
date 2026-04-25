@@ -58,10 +58,22 @@ export function getLiveWindowPayload(now = new Date()): LiveWindowPayload {
 
 export type FreshnessStatus = "fresh" | "stale" | "saved" | "empty";
 
+export function isTimestampFresh(params: {
+  timestampUtc: Date;
+  checkedAtUtc?: Date;
+  freshForMinutes: number;
+}): boolean {
+  const checkedAt = params.checkedAtUtc ?? new Date();
+  const ageMinutes = (checkedAt.getTime() - params.timestampUtc.getTime()) / 60_000;
+
+  return ageMinutes <= params.freshForMinutes;
+}
+
 export function getWindowAwareFreshnessStatus(params: {
   latestTimestampUtc: Date | null;
   liveWindow: LiveWindowPayload;
   freshForMinutes: number;
+  checkedAtUtc?: Date;
 }): FreshnessStatus {
   if (!params.latestTimestampUtc) {
     return "empty";
@@ -71,7 +83,11 @@ export function getWindowAwareFreshnessStatus(params: {
     return "saved";
   }
 
-  const ageMinutes = (Date.now() - params.latestTimestampUtc.getTime()) / 60_000;
-
-  return ageMinutes <= params.freshForMinutes ? "fresh" : "stale";
+  return isTimestampFresh({
+    timestampUtc: params.latestTimestampUtc,
+    checkedAtUtc: params.checkedAtUtc,
+    freshForMinutes: params.freshForMinutes,
+  })
+    ? "fresh"
+    : "stale";
 }

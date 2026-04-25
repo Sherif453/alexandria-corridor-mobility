@@ -123,6 +123,7 @@ Local and VPS baseline values:
 
 ```env
 DATABASE_URL="file:./dev.db"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
 TOMTOM_API_KEY="your_tomtom_key"
 TOMTOM_BASE_URL="https://api.tomtom.com"
 TOMTOM_FLOW_VERSION="4"
@@ -163,6 +164,7 @@ For the hybrid Vercel frontend plus VPS backend setup:
 Future environment changes should be rare:
 
 - Change `BACKEND_API_BASE_URL` only if the VPS backend domain changes.
+- Change `NEXT_PUBLIC_APP_URL` only when the public frontend domain changes.
 - Change `BACKEND_API_SECRET` only when rotating the shared Vercel/VPS secret.
 - Change `API_REQUIRE_BACKEND_SECRET` to `true` only after Vercel proxying is
   confirmed.

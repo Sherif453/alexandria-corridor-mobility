@@ -15,6 +15,7 @@ import { syncSegmentsFromDefinition } from "@/lib/services/segment-service";
 import {
   getLiveWindowPayload,
   getWindowAwareFreshnessStatus,
+  isTimestampFresh,
 } from "@/lib/time/live-window";
 
 const historyQuerySchema = z.object({
@@ -28,6 +29,8 @@ type HistoryQuery = z.infer<typeof historyQuerySchema>;
 type TrafficObservationRecord = Awaited<
   ReturnType<typeof listTrafficObservationsInRange>
 >[number];
+
+const LIVE_TRAFFIC_FRESHNESS_MINUTES = 30;
 
 function toIsoString(date: Date | null | undefined): string | null {
   return date ? date.toISOString() : null;
@@ -101,6 +104,32 @@ function mapObservation(observation: TrafficObservationRecord) {
   };
 }
 
+export function getSummaryObservationsForLatestTraffic(params: {
+  latestObservations: Array<TrafficObservationRecord | null>;
+  liveWindow: ReturnType<typeof getLiveWindowPayload>;
+  checkedAtUtc?: Date;
+  freshForMinutes?: number;
+}) {
+  const observationRows = params.latestObservations.filter(
+    (observation): observation is NonNullable<typeof observation> => Boolean(observation),
+  );
+
+  if (!params.liveWindow.isActiveNow) {
+    return observationRows;
+  }
+
+  const checkedAtUtc = params.checkedAtUtc ?? new Date();
+  const freshForMinutes = params.freshForMinutes ?? LIVE_TRAFFIC_FRESHNESS_MINUTES;
+
+  return observationRows.filter((observation) =>
+    isTimestampFresh({
+      timestampUtc: observation.timestampUtc,
+      checkedAtUtc,
+      freshForMinutes,
+    }),
+  );
+}
+
 export async function getLatestTrafficPayload() {
   await syncSegmentsFromDefinition();
 
@@ -127,8 +156,14 @@ export async function getLatestTrafficPayload() {
 
       return latest;
     }, null);
-  const observedSegments = latestObservations.filter(Boolean).length;
   const liveWindow = getLiveWindowPayload();
+  const summaryObservations = getSummaryObservationsForLatestTraffic({
+    latestObservations,
+    liveWindow,
+    checkedAtUtc: new Date(liveWindow.checkedAtUtc),
+    freshForMinutes: LIVE_TRAFFIC_FRESHNESS_MINUTES,
+  });
+  const observedSegments = summaryObservations.length;
 
   return {
     corridor: buildCorridorPayload(segments.length),
@@ -138,28 +173,24 @@ export async function getLatestTrafficPayload() {
       status: getWindowAwareFreshnessStatus({
         latestTimestampUtc,
         liveWindow,
-        freshForMinutes: 30,
+        checkedAtUtc: new Date(liveWindow.checkedAtUtc),
+        freshForMinutes: LIVE_TRAFFIC_FRESHNESS_MINUTES,
       }),
       latestTimestampUtc: toIsoString(latestTimestampUtc),
       observedSegments,
       missingSegments: segments.length - observedSegments,
     },
     summary: {
-      averageSpeed: average(latestObservations.map((observation) => observation?.speed)),
+      averageSpeed: average(summaryObservations.map((observation) => observation.speed)),
       averageFreeFlowSpeed: average(
-        latestObservations.map((observation) => observation?.freeFlowSpeed),
+        summaryObservations.map((observation) => observation.freeFlowSpeed),
       ),
       averageSpeedRatio: average(
-        latestObservations.map((observation) =>
-          observation ? getSpeedRatio(observation.speed, observation.freeFlowSpeed) : null,
+        summaryObservations.map((observation) =>
+          getSpeedRatio(observation.speed, observation.freeFlowSpeed),
         ),
       ),
-      congestionCounts: summarizeCongestionLabels(
-        latestObservations.filter(
-          (observation): observation is NonNullable<typeof observation> =>
-            Boolean(observation),
-        ),
-      ),
+      congestionCounts: summarizeCongestionLabels(summaryObservations),
     },
     segments: segments.map((segment) => {
       const observation = observationsBySegmentId.get(segment.segmentId);

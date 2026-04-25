@@ -7,3 +7,14 @@ export async function getLatestModelRun() {
     },
   });
 }
+
+export async function getModelRunByVersion(version: string) {
+  return prisma.modelRun.findFirst({
+    where: {
+      version,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
