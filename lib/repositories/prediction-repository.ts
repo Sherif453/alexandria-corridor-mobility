@@ -1,5 +1,11 @@
 import { prisma } from "@/lib/db";
 
+export type PredictionSnapshotCandidate = {
+  modelVersion: string;
+  timestampUtc: Date;
+  predictedSegments: number;
+};
+
 export async function getLatestPredictionTimestamp(params: { modelVersion: string }) {
   const prediction = await prisma.prediction.findFirst({
     where: {
@@ -89,4 +95,37 @@ export async function listPredictionsInRange(params: {
       },
     ],
   });
+}
+
+export async function listPredictionSnapshotCandidates(params: {
+  segmentIds: string[];
+  modelVersion?: string;
+  take?: number;
+}): Promise<PredictionSnapshotCandidate[]> {
+  if (params.segmentIds.length === 0) {
+    return [];
+  }
+
+  const grouped = await prisma.prediction.groupBy({
+    by: ["modelVersion", "timestampUtc"],
+    where: {
+      segmentId: {
+        in: params.segmentIds,
+      },
+      ...(params.modelVersion ? { modelVersion: params.modelVersion } : {}),
+    },
+    _count: {
+      segmentId: true,
+    },
+    orderBy: {
+      timestampUtc: "desc",
+    },
+    take: params.take ?? 12,
+  });
+
+  return grouped.map((row) => ({
+    modelVersion: row.modelVersion,
+    timestampUtc: row.timestampUtc,
+    predictedSegments: row._count.segmentId,
+  }));
 }

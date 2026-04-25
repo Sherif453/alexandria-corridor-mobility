@@ -2,14 +2,14 @@ import type { Metadata, Viewport } from "next";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "Alexandria Corridor Mobility Intelligence",
-  description: "Corridor mobility decision-support system",
-};
+import { defaultMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = defaultMetadata;
 
 export const viewport: Viewport = {
   initialScale: 1,
   width: "device-width",
+  themeColor: "#0f766e",
 };
 
 export default function RootLayout({

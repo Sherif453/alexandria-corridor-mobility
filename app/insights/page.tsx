@@ -1,7 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { PageShell } from "@/components/page-shell";
 import { StatusPill } from "@/components/status-pill";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = createPageMetadata({
+  title: "Guidance",
+  description:
+    "Learn how to use the Alexandria Corridor Mobility Intelligence app, interpret congestion levels, and choose between live traffic, history, predictions, and scenarios.",
+  path: "/insights",
+  keywords: ["user guidance", "traffic dashboard guide", "congestion interpretation"],
+});
 
 const mainSteps = [
   {
