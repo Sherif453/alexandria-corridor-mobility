@@ -51,7 +51,7 @@ test("backfill plan identifies only rows whose computed label changed", () => {
   assert.equal(result.summary.unchanged, 1);
   assert.equal(result.summary.updates, 2);
   assert.deepEqual(result.summary.changeCounts, {
-    "Medium=>Low": 1,
+    "Medium=>High": 1,
     "null=>High": 1,
   });
   assert.deepEqual(result.updates, [
@@ -61,9 +61,9 @@ test("backfill plan identifies only rows whose computed label changed", () => {
       nextLabel: "High",
     },
     {
-      id: "obs-3",
+      id: "obs-2",
       previousLabel: "Medium",
-      nextLabel: "Low",
+      nextLabel: "High",
     },
   ]);
 });

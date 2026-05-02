@@ -61,6 +61,9 @@ function isWithinActiveWindow(date: Date): boolean {
   );
 }
 
+const HIGH_CONGESTION_SPEED_RATIO_MAX = 0.5;
+const MEDIUM_CONGESTION_SPEED_RATIO_MAX = 0.8;
+
 export function getCongestionLabel(speed: number | null, freeFlowSpeed: number | null) {
   if (speed === null || freeFlowSpeed === null || freeFlowSpeed <= 0) {
     return null;
@@ -68,11 +71,11 @@ export function getCongestionLabel(speed: number | null, freeFlowSpeed: number |
 
   const ratio = speed / freeFlowSpeed;
 
-  if (ratio < 0.4) {
+  if (ratio < HIGH_CONGESTION_SPEED_RATIO_MAX) {
     return "High";
   }
 
-  if (ratio <= 0.7) {
+  if (ratio <= MEDIUM_CONGESTION_SPEED_RATIO_MAX) {
     return "Medium";
   }
 
