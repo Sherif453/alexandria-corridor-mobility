@@ -213,9 +213,9 @@ export function LiveCorridor() {
             tone={
               latest.summary.averageSpeedRatio === null
                 ? "default"
-                : latest.summary.averageSpeedRatio < 0.4
+                : latest.summary.averageSpeedRatio < 0.5
                   ? "red"
-                  : latest.summary.averageSpeedRatio <= 0.7
+                  : latest.summary.averageSpeedRatio <= 0.8
                     ? "amber"
                     : "green"
             }

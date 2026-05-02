@@ -8,8 +8,10 @@ test("getCongestionLabel treats zero speed as valid high congestion", () => {
 });
 
 test("getCongestionLabel applies the configured ratio thresholds", () => {
+  assert.equal(getCongestionLabel(19, 40), "High");
   assert.equal(getCongestionLabel(20, 40), "Medium");
-  assert.equal(getCongestionLabel(32, 40), "Low");
+  assert.equal(getCongestionLabel(32, 40), "Medium");
+  assert.equal(getCongestionLabel(33, 40), "Low");
 });
 
 test("getCongestionLabel returns null only for missing or invalid free-flow data", () => {

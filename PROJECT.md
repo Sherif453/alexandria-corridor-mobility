@@ -551,8 +551,9 @@ The following items remain open:
 - Raw ingestion payloads are written to `data/raw/tomtom/<YYYY-MM-DD>/` and
   normalized observations are written to SQLite when the TomTom key is present.
 - The congestion class thresholds are based on speed ratio to free-flow speed:
-  High below 0.4, Medium from 0.4 to 0.7, and Low above 0.7. First working
-  thresholds and revisit only if the data suggests better cutoffs.
+  High below 0.5, Medium from 0.5 to 0.8, and Low above 0.8. These cutoffs
+  keep slow urban-arterial readings near 70-80% of free-flow from being shown
+  as low congestion.
 - Historical analytics uses 15-minute raw windows, hourly aggregation, and daily
   aggregation.
 - Traffic read APIs now expose the latest per-segment corridor state plus

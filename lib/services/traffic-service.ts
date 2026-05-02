@@ -137,13 +137,6 @@ export async function getLatestTrafficPayload() {
   const latestObservations = await getLatestTrafficObservations(
     segments.map((segment) => segment.segmentId),
   );
-  const observationsBySegmentId = new Map(
-    latestObservations
-      .filter((observation): observation is NonNullable<typeof observation> =>
-        Boolean(observation),
-      )
-      .map((observation) => [observation.segmentId, observation]),
-  );
   const latestTimestampUtc =
     latestObservations.reduce<Date | null>((latest, observation) => {
       if (!observation) {
@@ -163,6 +156,9 @@ export async function getLatestTrafficPayload() {
     checkedAtUtc: new Date(liveWindow.checkedAtUtc),
     freshForMinutes: LIVE_TRAFFIC_FRESHNESS_MINUTES,
   });
+  const visibleObservationsBySegmentId = new Map(
+    summaryObservations.map((observation) => [observation.segmentId, observation]),
+  );
   const observedSegments = summaryObservations.length;
 
   return {
@@ -193,7 +189,7 @@ export async function getLatestTrafficPayload() {
       congestionCounts: summarizeCongestionLabels(summaryObservations),
     },
     segments: segments.map((segment) => {
-      const observation = observationsBySegmentId.get(segment.segmentId);
+      const observation = visibleObservationsBySegmentId.get(segment.segmentId);
 
       return {
         segmentId: segment.segmentId,
